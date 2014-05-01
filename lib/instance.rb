@@ -48,7 +48,8 @@ class Instance
 
   private
   def wait_for_ssh_readiness
-    remaining_attempts = 10
+    # debian images can be VERY slow
+    remaining_attempts = 20
 
     begin
       Timeout.timeout(10) do
