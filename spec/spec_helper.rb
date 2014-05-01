@@ -21,10 +21,10 @@ def data_file(path)
   File.expand_path("../../data/#{path}", __FILE__)
 end
 
-def wait_until(timeout = 60, &block)
+def wait_until(timeout = 120, &block)
   Timeout.timeout(timeout) do
     until block.call do
-      sleep 5
+      sleep 10
     end
   end
 end
@@ -32,4 +32,9 @@ end
 RSpec.configure do |config|
   config.include Capybara::DSL
   config.order = "random"
+
+  config.after(:suite) do
+    running_instances = AWS.ec2.instances.tagged(Instance::TAG_KEY).select{|i| ["running"].include?(i.status.to_s)}
+    puts "Some instances are still running: #{running_instances.collect(&:id)}" if running_instances.any?
+  end
 end

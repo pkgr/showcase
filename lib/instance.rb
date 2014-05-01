@@ -10,6 +10,8 @@ require 'distribution'
 # Deals with an EC2 instance.
 # http://docs.aws.amazon.com/AWSRubySDK/latest/frames.html
 class Instance
+  TAG_KEY = 'pkgr-showcase-testing'
+
   attr_reader :hostname, :user, :ec2_instance
 
   def self.ec2
@@ -20,7 +22,7 @@ class Instance
     ami_id = distribution.ami_id
     username = distribution.username
 
-    tag_key = 'pkgr-showcase-testing'
+    tag_key = TAG_KEY
     tag_val ||= "#{distribution.name} - #{ami_id}"
 
     # attempt to find a running instance with the same tag
@@ -108,7 +110,7 @@ class Instance
       if remaining_attempts > 0
         puts "SSH not ready yet, retrying..."
         remaining_attempts -= 1
-        sleep 5
+        sleep 10
         retry
       else
         raise e
