@@ -2,7 +2,7 @@ require File.expand_path('../spec_helper', __FILE__)
 
 describe "Gitlab" do
   def launch_test(distribution, command)
-    ec2_launch(distribution) do |instance|
+    Instance.launch(distribution) do |instance|
       instance.ssh(command) do |ssh|
         wait_until { ssh.exec!("ps aux | grep git").include?("unicorn") }
 
@@ -22,12 +22,13 @@ describe "Gitlab" do
 
   context "pkgr branch" do
     [
-      # "ubuntu-12.04",
-      # "ubuntu-14.04",
+      "ubuntu-12.04",
+      "ubuntu-14.04",
       "debian-7"
-    ].each do |distribution|
-      it "deploys gitlab on #{distribution}" do
-        command = Command.new(template_for("gitlab.sh.erb", codename: codename_for(distribution), branch: "pkgr"), sudo: true)
+    ].map{|d| Distribution.new(d) }.each do |distribution|
+      it "deploys gitlab on #{distribution.name}" do
+        template = Template.new(data_file("gitlab.sh.erb"), codename: distribution.codename, branch: "pkgr")
+        command = Command.new(template.render, sudo: true)
         launch_test(distribution, command)
       end
     end

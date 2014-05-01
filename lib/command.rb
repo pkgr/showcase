@@ -3,7 +3,7 @@ class Command
 
   def initialize(io, opts = {})
     @io = io
-    @sudo = opts.key?(:sudo) ? opts[:sudo] : true
+    @sudo = opts.key?(:sudo) ? opts[:sudo] : false
   end
 
   def sudo?
