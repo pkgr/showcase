@@ -1,2 +1,10 @@
+source 'https://rubygems.org'
+
 gem 'rspec'
 gem 'rake'
+gem 'aws-sdk', require: 'aws-sdk'
+gem 'net-ssh'
+gem 'net-scp'
+gem 'colorize'
+gem 'capybara'
+gem 'selenium-webdriver'
