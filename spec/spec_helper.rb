@@ -31,15 +31,5 @@ end
 
 RSpec.configure do |config|
   config.include Capybara::DSL
-
-  config.before(:suite) do
-  end
-
-  config.before(:each) do
-  end
-
-  config.after(:each) do
-  end
-
   config.order = "random"
 end

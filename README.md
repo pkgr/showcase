@@ -21,4 +21,4 @@ Installation recipes can be found in the `data/` folder.
 
 ## TODO
 
-* Parallelize tests.
+* [ ] Parallelize tests.
