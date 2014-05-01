@@ -10,7 +10,18 @@ Installation recipes can be found in the `data/` folder.
 
 ## Usage
 
+Setup dependencies:
+
     bundle install
+
+Setup environment variables:
+
+    export AWS_ACCESS_KEY="xxx"
+    export AWS_SECRET_KEY="yyy"
+    export AWS_REGION="zzz" # defaults to us-east-1
+
+Launch the tests:
+
     bundle exec rspec spec/
     # or
     bundle exec rspec spec/ -e "specific example name"

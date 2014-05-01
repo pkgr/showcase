@@ -14,7 +14,7 @@ Capybara.run_server = false
 AWS.config(
   access_key_id: ENV.fetch('AWS_ACCESS_KEY'),
   secret_access_key: ENV.fetch('AWS_SECRET_KEY'),
-  region: 'us-east-1'
+  region: ENV.fetch('AWS_REGION') { 'us-east-1' }
 )
 
 def data_file(path)
