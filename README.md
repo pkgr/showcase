@@ -26,6 +26,10 @@ Launch the tests:
     # or
     bundle exec rspec spec/ -e "specific example name"
 
+If you're writing new tests, it is probably good to NOT terminate the EC2 instance after each test, so that you can re-run the test and it will reuse the same instance instead of launching a new one. Use `DEBUG=yes` to do this:
+
+    DEBUG=yes bundle exec rspec spec/ -e "specific example name"
+
 ## Tested applications
 
 * Gitlab - <https://pkgr.io/apps/pkgr/gitlabhq>
