@@ -33,6 +33,7 @@ If you're writing new tests, it is probably good to NOT terminate the EC2 instan
 ## Tested applications
 
 * Gitlab - <https://pkgr.io/apps/pkgr/gitlabhq>
+* Discourse - <https://pkgr.io/apps/pkgr/discourse>
 
 ## TODO
 

@@ -10,6 +10,8 @@ require 'template'
 
 Capybara.default_driver = :selenium
 Capybara.run_server = false
+# since we're cold-loading the apps most of the time, it makes sense to wait more
+Capybara.default_wait_time = 10
 
 AWS.config(
   access_key_id: ENV.fetch('AWS_ACCESS_KEY'),

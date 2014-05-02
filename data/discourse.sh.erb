@@ -1,0 +1,58 @@
+#!/bin/bash
+
+set -e
+
+export DEBIAN_FRONTEND=noninteractive
+
+CODENAME="<%= codename %>"
+BRANCH="<%= branch %>"
+ADMIN_EMAIL="<%= email %>"
+
+apt-get update -qq
+apt-get install -y curl apt-transport-https sudo
+apt-get install -y postgresql postgresql-contrib redis-server
+
+HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+
+debconf-set-selections <<< "postfix postfix/mailname string ${HOSTNAME}"
+debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+apt-get install -y postfix
+
+wget -qO - https://deb.pkgr.io/key | sudo apt-key add -
+
+rm -f /etc/apt/sources.list.d/pkgr.list
+echo "deb https://deb.pkgr.io/pkgr/discourse ${CODENAME} ${BRANCH}" | sudo tee -a /etc/apt/sources.list.d/pkgr.list
+sudo apt-get update -qq
+sudo apt-get install -y discourse
+
+echo "CREATE USER \"user\" SUPERUSER PASSWORD 'pass';" | su - postgres -c psql && \
+  echo "CREATE DATABASE discourse;" | su - postgres -c psql && \
+  echo "GRANT ALL PRIVILEGES ON DATABASE \"discourse\" TO \"user\";" | su - postgres -c psql
+
+
+discourse config:set DATABASE_URL=postgres://user:pass@127.0.0.1/discourse
+discourse config:set REDIS_URL=redis://127.0.0.1:6379
+discourse config:set SECRET_TOKEN=$(discourse run rake secret)
+# set this to the main admin email address
+discourse config:set DISCOURSE_DEVELOPER_EMAILS="${ADMIN_EMAIL}"
+
+discourse run rake db:migrate db:seed_fu
+
+discourse scale web=1 worker=1
+
+sudo apt-get install -y nginx
+
+# setup nginx configuration
+cat > /etc/nginx/sites-available/default <<EOF
+server {
+  listen          80;
+  server_name     example.com;
+  location / {
+    proxy_pass      http://localhost:6000;
+  }
+}
+EOF
+ # restart nginx
+sudo service nginx restart
+
+echo "http://${HOSTNAME}"
