@@ -4,6 +4,7 @@ set -e
 
 CODENAME="<%= codename %>"
 BRANCH="<%= branch %>"
+REPO_URL="<%= repo_url %>"
 
 apt-get update -qq
 apt-get install -y curl apt-transport-https sudo
@@ -12,21 +13,9 @@ apt-get install -y postgresql postgresql-contrib redis-server
 wget -qO - https://deb.pkgr.io/key | sudo apt-key add -
 
 rm -f /etc/apt/sources.list.d/pkgr.list
-echo "deb https://deb.pkgr.io/pkgr/gitlabhq ${CODENAME} ${BRANCH}" | sudo tee -a /etc/apt/sources.list.d/pkgr.list
+echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee -a /etc/apt/sources.list.d/pkgr.list
 sudo apt-get update -qq
-sudo apt-get install -y gitlabhq
-
-echo "CREATE USER \"user\" SUPERUSER PASSWORD 'pass';" | su - postgres -c psql && \
-  echo "CREATE DATABASE gitlabhq;" | su - postgres -c psql && \
-  echo "GRANT ALL PRIVILEGES ON DATABASE \"gitlabhq\" TO \"user\";" | su - postgres -c psql
-
-HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
-
-gitlabhq config:set DATABASE_URL=postgres://user:pass@127.0.0.1/gitlabhq
-gitlabhq config:set REDIS_URL=redis://127.0.0.1:6379
-gitlabhq config:set GITLAB_URL="http://${HOSTNAME}"
-
-gitlabhq run rake gitlab:shell:install[v1.9.3]
+sudo apt-get install -y gitlab-ce
 
 cat >> /etc/ssh/sshd_config <<EOF
 
@@ -34,10 +23,19 @@ PermitUserEnvironment yes
 EOF
 service ssh reload
 
-gitlabhq run rake db:schema:load db:seed_fu
+echo "CREATE USER \"user\" SUPERUSER PASSWORD 'pass';" | su - postgres -c psql && \
+  echo "CREATE DATABASE gitlab;" | su - postgres -c psql && \
+  echo "GRANT ALL PRIVILEGES ON DATABASE \"gitlab\" TO \"user\";" | su - postgres -c psql
 
-gitlabhq scale web=1 worker=1
+HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 
+gitlab-ce config:set DATABASE_URL=postgres://user:pass@127.0.0.1/gitlab
+gitlab-ce config:set REDIS_URL=redis://127.0.0.1:6379
+gitlab-ce config:set GITLAB_URL="http://${HOSTNAME}"
+
+gitlab-ce run rake gitlab:shell:install[v1.9.3]
+gitlab-ce run rake db:schema:load db:seed_fu
+gitlab-ce scale web=1 worker=1
 
 sudo apt-get install -y nginx
 
