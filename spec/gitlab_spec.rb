@@ -20,6 +20,20 @@ describe "Gitlab" do
     end
   end
 
+  context "7-0-stable branch" do
+    [
+      "ubuntu-12.04",
+      "ubuntu-14.04",
+      "debian-7"
+    ].map{|d| Distribution.new(d) }.each do |distribution|
+      it "deploys gitlab on #{distribution.name}" do
+        template = Template.new(data_file("gitlab.sh.erb"), codename: distribution.codename, branch: "7-0-stable", repo_url: "https://deb.packager.io/gh/gitlabhq/gitlabhq")
+        command = Command.new(template.render, sudo: true)
+        launch_test(distribution, command)
+      end
+    end
+  end
+
   context "6-9-stable branch" do
     [
       "ubuntu-12.04",
