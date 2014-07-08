@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -ex
+
+export DEBIAN_FRONTEND=noninteractive
+
+CODENAME="<%= codename %>"
+BRANCH="<%= branch %>"
+REPO_URL="<%= repo_url %>"
+
+apt-get update -qq
+apt-get install -y curl apt-transport-https sudo
+
+HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+
+MYSQL_PASSWORD="p4ssw0rd"
+echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}" | debconf-set-selections
+echo "mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}" | debconf-set-selections
+apt-get install -y --force-yes mysql-server
+
+wget -qO - https://deb.packager.io/key | sudo apt-key add -
+echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/openproject.list
+sudo apt-get update
+
+debconf-set-selections <<CONFIG
+openproject-mysql openproject/mysql/autoinstall boolean true
+openproject-mysql openproject/mysql/admin_password password ${MYSQL_PASSWORD}
+openproject-mysql openproject/mysql/admin_username string root
+openproject-mysql openproject/mysql/db_host string 127.0.0.1
+openproject-mysql openproject/mysql/db_port string 3306
+CONFIG
+
+sudo apt-get install openproject -y
+
+sudo apt-get install -y nginx
+
+# setup nginx configuration
+cat > /etc/nginx/sites-available/default <<EOF
+server {
+  listen          80;
+  server_name     example.com;
+  location / {
+    proxy_pass      http://localhost:6000;
+  }
+}
+EOF
+ # restart nginx
+sudo service nginx restart
+
+echo "http://${HOSTNAME}"
