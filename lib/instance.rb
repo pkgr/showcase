@@ -4,6 +4,7 @@ require 'net/scp'
 require 'colorize'
 require 'tempfile'
 require 'timeout'
+require 'fileutils'
 
 require 'distribution'
 
@@ -12,7 +13,7 @@ require 'distribution'
 class Instance
   TAG_KEY = 'pkgr-showcase-testing'
 
-  attr_reader :hostname, :user, :ec2_instance
+  attr_reader :hostname, :user, :ec2_instance, :key_file
 
   def self.ec2
     AWS.ec2
@@ -28,16 +29,29 @@ class Instance
     # attempt to find a running instance with the same tag
     ec2_instance = ec2.instances.tagged(tag_key).tagged_values(tag_val).select{|i| ["running"].include?(i.status.to_s)}.first
 
+    key_name = "sandbox-key-#{`hostname -f`.chomp}"
+    key_file = File.expand_path("~/.ssh/#{key_name}")
+
     # otherwise, create a new instance
     if ec2_instance.nil?
       puts "Launching a new instance..."
       # http://docs.aws.amazon.com/AWSRubySDK/latest/frames.html
+
+      # re-create sandbox key
+      key_pair = ec2.key_pairs.find{|k| k.name == key_name}
+      key_pair ||= ec2.key_pairs.create(key_name)
+
+      File.open(key_file, "wb") do |f|
+        f.write(key_pair.private_key)
+      end
+      FileUtils.chmod 0600, key_file
+
       ec2_instance = ec2.instances.create(
         :image_id => ami_id,
         :instance_type => 't1.micro',
         :count => 1,
         :security_groups => 'default',
-        :key_pair => ec2.key_pairs['aws']
+        :key_pair => ec2.key_pairs[key_name]
       )
       ec2_instance.tags[tag_key] = tag_val
     else
@@ -48,7 +62,7 @@ class Instance
       sleep 2
     end
 
-    vm = self.new(ec2_instance, ec2_instance.public_dns_name, username)
+    vm = self.new(ec2_instance, ec2_instance.public_dns_name, username, key_file)
 
     if block_given?
       yield vm
@@ -58,9 +72,10 @@ class Instance
     end
   end
 
-  def initialize(ec2_instance, hostname, user)
+  def initialize(ec2_instance, hostname, user, key_file)
     @ec2_instance = ec2_instance
     @hostname, @user = hostname, user
+    @key_file = key_file
   end
 
   def ssh(command = nil)
@@ -74,7 +89,7 @@ class Instance
 
     wait_for_ssh_readiness
 
-    Net::SSH.start(hostname, user) do |ssh|
+    Net::SSH.start(*ssh_args) do |ssh|
       puts "Uploading runner..."
       ssh.scp.upload! tmpfile.path, "/tmp/runner"
       puts "Executing command..."
@@ -96,13 +111,18 @@ class Instance
   end
 
   private
+
+  def ssh_args
+    [hostname, user, {keys: [key_file], keys_only: true}]
+  end
+
   def wait_for_ssh_readiness
     # debian images can be VERY slow
     remaining_attempts = 30
 
     begin
       Timeout.timeout(10) do
-        Net::SSH.start(hostname, user) do |ssh|
+        Net::SSH.start(*ssh_args) do |ssh|
           ssh.exec!("ls")
         end
       end
