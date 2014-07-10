@@ -9,7 +9,7 @@ describe "OpenProject" do
         ps_output = ssh.exec!("ps -u openproject -f")
         expect(ps_output).to include("unicorn")
 
-        visit "http://#{instance.hostname}"
+        visit "https://#{instance.hostname}"
         expect(page).to have_content("Sign in")
       end
     end

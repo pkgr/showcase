@@ -11,8 +11,19 @@ REPO_URL="<%= repo_url %>"
 apt-get update -qq
 apt-get install -y curl apt-transport-https sudo
 
+# fetch local machine hostname
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 
+# generate self-signed certificate to test SSL config
+openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
+openssl rsa -passin pass:x -in server.pass.key -out server.key
+rm server.pass.key
+openssl req -new -key server.key -out server.csr -subj "/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+cp server.crt /etc/ssl/certs/
+cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
+
+# install MySQL, and populate master password
 MYSQL_PASSWORD="p4ssw0rd"
 echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}" | debconf-set-selections
 echo "mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}" | debconf-set-selections
@@ -28,23 +39,14 @@ openproject-mysql openproject/mysql/admin_password password ${MYSQL_PASSWORD}
 openproject-mysql openproject/mysql/admin_username string root
 openproject-mysql openproject/mysql/db_host string 127.0.0.1
 openproject-mysql openproject/mysql/db_port string 3306
+openproject-apache2 openproject/server/autoinstall boolean true
+openproject-apache2 openproject/server/hostname string ${HOSTNAME}
+openproject-apache2 openproject/server/ssl boolean true
+openproject-apache2 openproject/server/ssl_cert string /etc/ssl/certs/server.crt
+openproject-apache2 openproject/server/ssl_ca string /etc/ssl/certs/server.crt
+openproject-apache2 openproject/server/ssl_key string /etc/ssl/private/server.key
 CONFIG
 
 sudo apt-get install openproject -y
-
-sudo apt-get install -y nginx
-
-# setup nginx configuration
-cat > /etc/nginx/sites-available/default <<EOF
-server {
-  listen          80;
-  server_name     example.com;
-  location / {
-    proxy_pass      http://localhost:6000;
-  }
-}
-EOF
- # restart nginx
-sudo service nginx restart
 
 echo "http://${HOSTNAME}"
