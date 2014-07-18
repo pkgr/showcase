@@ -7,6 +7,7 @@ export DEBIAN_FRONTEND=noninteractive
 CODENAME="<%= codename %>"
 BRANCH="<%= branch %>"
 REPO_URL="<%= repo_url %>"
+SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
 
 apt-get update -qq
 apt-get install -y curl apt-transport-https sudo
@@ -25,8 +26,10 @@ cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
 # install MySQL, and populate master password
 MYSQL_PASSWORD="p4ssw0rd"
-echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}" | debconf-set-selections
-echo "mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}" | debconf-set-selections
+debconf-set-selections <<CONFIG
+mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}
+mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
+CONFIG
 apt-get install -y --force-yes mysql-server
 
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
@@ -38,6 +41,7 @@ openproject-mysql openproject/mysql/autoinstall boolean true
 openproject-mysql openproject/mysql/admin_password password ${MYSQL_PASSWORD}
 openproject-mysql openproject/mysql/admin_username string root
 openproject-mysql openproject/mysql/db_host string 127.0.0.1
+openproject-mysql openproject/mysql/db_source_host string 127.0.0.1
 openproject-mysql openproject/mysql/db_port string 3306
 openproject-apache2 openproject/server/autoinstall boolean true
 openproject-apache2 openproject/server/hostname string ${HOSTNAME}
@@ -45,6 +49,12 @@ openproject-apache2 openproject/server/ssl boolean true
 openproject-apache2 openproject/server/ssl_cert string /etc/ssl/certs/server.crt
 openproject-apache2 openproject/server/ssl_ca string /etc/ssl/certs/server.crt
 openproject-apache2 openproject/server/ssl_key string /etc/ssl/private/server.key
+openproject-smtp openproject/smtp/password: ${SMTP_PASSWORD}
+openproject-smtp openproject/smtp/username: cyril.rohr@gmail.com
+openproject-smtp openproject/smtp/domain: ${HOSTNAME}
+openproject-smtp openproject/smtp/host: smtp.mandrillapp.com
+openproject-smtp openproject/smtp/port: 587
+openproject-smtp openproject/smtp/method: smtp
 CONFIG
 
 sudo apt-get install openproject -y

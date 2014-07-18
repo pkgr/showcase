@@ -23,7 +23,7 @@ describe "OpenProject" do
         template = Template.new(
           data_file("openproject.sh.erb"),
           codename: distribution.codename,
-          branch: "packaging",
+          branch: "stable-packaging",
           repo_url: "https://deb.packager.io/gh/crohr/openproject"
         )
         command = Command.new(template.render, sudo: true)

@@ -29,8 +29,10 @@ class Instance
     # attempt to find a running instance with the same tag
     ec2_instance = ec2.instances.tagged(tag_key).tagged_values(tag_val).select{|i| ["running"].include?(i.status.to_s)}.first
 
-    key_name = "sandbox-key-#{`hostname -f`.chomp}"
+    key_name = "sandbox-key-#{`hostname -s`.chomp}"
     key_file = File.expand_path("~/.ssh/#{key_name}")
+
+    puts "key_name=#{key_name} key_file=#{key_file}"
 
     # otherwise, create a new instance
     if ec2_instance.nil?
@@ -39,12 +41,15 @@ class Instance
 
       # re-create sandbox key
       key_pair = ec2.key_pairs.find{|k| k.name == key_name}
-      key_pair ||= ec2.key_pairs.create(key_name)
-
-      File.open(key_file, "wb") do |f|
-        f.write(key_pair.private_key)
+      unless key_pair
+        key_pair = ec2.key_pairs.create(key_name)
+        File.open(key_file, "wb") do |f|
+          f.write(key_pair.private_key)
+        end
+        FileUtils.chmod 0600, key_file
       end
-      FileUtils.chmod 0600, key_file
+
+      fail "can't find #{key_file}" unless File.exists?(key_file)
 
       ec2_instance = ec2.instances.create(
         :image_id => ami_id,
