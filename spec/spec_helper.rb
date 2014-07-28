@@ -38,5 +38,6 @@ RSpec.configure do |config|
   config.after(:suite) do
     running_instances = AWS.ec2.instances.tagged(Instance::TAG_KEY).select{|i| ["running"].include?(i.status.to_s)}
     puts "Some instances are still running: #{running_instances.collect(&:id)}" if running_instances.any?
+    running_instances.each(&:delete) unless ENV['DEBUG'] == "yes"
   end
 end
