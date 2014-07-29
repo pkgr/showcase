@@ -11,6 +11,15 @@ describe "OpenProject" do
 
         visit "https://#{instance.hostname}"
         expect(page).to have_content("Sign in")
+        click_on "Sign in"
+        fill_in "Login", with: "admin"
+        fill_in "Password", with: "admin"
+        click_button "Login"
+        expect(page).to have_content("OpenProject Admin")
+
+        click_on "Modules"
+        click_on "Administration"
+        expect(page).to have_content("Projects")
       end
     end
   end
