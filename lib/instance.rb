@@ -11,7 +11,7 @@ require 'distribution'
 # Deals with an EC2 instance.
 # http://docs.aws.amazon.com/AWSRubySDK/latest/frames.html
 class Instance
-  TAG_KEY = 'pkgr-showcase-testing'
+  TAG_KEY = ENV.fetch('TAG_KEY') { 'pkgr-showcase-testing' }
 
   attr_reader :hostname, :user, :ec2_instance, :key_file
 
