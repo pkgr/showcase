@@ -4,7 +4,7 @@ describe "OpenProject" do
   def launch_test(distribution, command)
     Instance.launch(distribution) do |instance|
       instance.ssh(command) do |ssh|
-        wait_until { ssh.exec!("ps -u openproject -f").include?("unicorn") }
+        wait_until { ssh.exec!("ps -u openproject -f").include?("unicorn worker") }
 
         ps_output = ssh.exec!("ps -u openproject -f")
         expect(ps_output).to include("unicorn")
