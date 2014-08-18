@@ -4,9 +4,9 @@ describe "OpenProject" do
   def launch_test(distribution, command)
     Instance.launch(distribution) do |instance|
       instance.ssh(command) do |ssh|
-        wait_until { ssh.exec!("ps -u openproject -f").include?("unicorn worker") }
+        wait_until { ssh.exec!("ps -u someuser -f").include?("unicorn worker") }
 
-        ps_output = ssh.exec!("ps -u openproject -f")
+        ps_output = ssh.exec!("ps -u someuser -f")
         expect(ps_output).to include("unicorn")
 
         visit "https://#{instance.hostname}"
