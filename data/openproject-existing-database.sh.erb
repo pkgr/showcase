@@ -14,12 +14,13 @@ apt-get install -y curl apt-transport-https sudo
 
 # fetch local machine hostname
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+REQ_SUBJ="/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
 
 # generate self-signed certificate to test SSL config
 openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
 openssl rsa -passin pass:x -in server.pass.key -out server.key
 rm server.pass.key
-openssl req -new -key server.key -out server.csr -subj "/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
+openssl req -new -key server.key -out server.csr -subj "${REQ_SUBJ}"
 openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
@@ -32,7 +33,28 @@ mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
 CONFIG
 apt-get install -y --force-yes mysql-server
 
-mysql -u root -p${MYSQL_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar'; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
+mysql -u root -p${MYSQL_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
+
+# generate MySQL SSL config
+# https://mifosforge.jira.com/wiki/display/MIFOS/How+to+enable+MySQL+SSL+on+Ubuntu
+cd /etc/mysql
+openssl genrsa -out ca-key.pem 2048;
+openssl req -new -x509 -nodes -days 1000 -key ca-key.pem -out ca-cert.pem -subj "${REQ_SUBJ}";
+openssl req -newkey rsa:2048 -days 1000 -nodes -keyout server-key.pem -out server-req.pem -subj "$REQ_SUBJ";
+openssl x509 -req -in server-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem;
+openssl rsa -in /etc/mysql/server-key.pem -out /etc/mysql/server-key.pem
+openssl req -newkey rsa:2048 -days 1000 -nodes -keyout client-key.pem -out client-req.pem -sub "$REQ_SUBJ";
+openssl x509 -req -in client-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out client-cert.pem;
+# to avoid SSL connection error: protocol version mismatch, http://askubuntu.com/questions/194074/enabling-ssl-in-mysql
+openssl rsa -in /etc/mysql/client-key.pem -out /etc/mysql/client-key.pem
+
+cat > /etc/mysql/conf.d/ssl.cnf <<MYSQL
+[mysqld]
+ssl-ca=/etc/mysql/ca-cert.pem
+ssl-cert=/etc/mysql/server-cert.pem
+ssl-key=/etc/mysql/server-key.pem
+MYSQL
+service mysql reload
 
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
 echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/openproject.list
@@ -46,6 +68,10 @@ openproject-mysql openproject/mysql/db_port string 3306
 openproject-mysql openproject/mysql/db_username string foo
 openproject-mysql openproject/mysql/db_password password bar
 openproject-mysql openproject/mysql/db_name string foobar
+openproject-mysql openproject/mysql/ssl boolean true
+openproject-mysql openproject/mysql/ssl_ca string /etc/mysql/ca-cert.pem
+openproject-mysql openproject/mysql/ssl_cert string /etc/mysql/client-cert.pem
+openproject-mysql openproject/mysql/ssl_key string /etc/mysql/client-key.pem
 openproject-apache2 openproject/server/autoinstall boolean true
 openproject-apache2 openproject/server/hostname string ${HOSTNAME}
 openproject-apache2 openproject/server/ssl boolean true
