@@ -1,8 +1,8 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe "OpenProject" do
-  def launch_test(distribution, command)
-    Instance.launch(distribution) do |instance|
+  def launch_test(distribution, command, tag_val = nil)
+    Instance.launch(distribution, tag_val) do |instance|
       instance.ssh(command) do |ssh|
         wait_until { ssh.exec!("ps -u someuser -f").include?("unicorn worker") }
 
@@ -28,15 +28,26 @@ describe "OpenProject" do
     [
       "debian-7"
     ].map{|d| Distribution.new(d) }.each do |distribution|
-      it "deploys OpenProject on #{distribution.name}" do
+      it "deploys OpenProject on #{distribution.name}, with new database" do
         template = Template.new(
-          data_file("openproject.sh.erb"),
+          data_file("openproject-new-database.sh.erb"),
           codename: distribution.codename,
           branch: "packaging",
           repo_url: "https://deb.packager.io/gh/crohr/openproject"
         )
         command = Command.new(template.render, sudo: true)
-        launch_test(distribution, command)
+        launch_test(distribution, command, "#{distribution.name} - openproject new database")
+      end
+
+      it "deploys OpenProject on #{distribution.name}, with existing database" do
+        template = Template.new(
+          data_file("openproject-existing-database.sh.erb"),
+          codename: distribution.codename,
+          branch: "packaging",
+          repo_url: "https://deb.packager.io/gh/crohr/openproject"
+        )
+        command = Command.new(template.render, sudo: true)
+        launch_test(distribution, command, "#{distribution.name} - openproject existing database")
       end
     end
   end

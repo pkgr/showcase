@@ -32,24 +32,27 @@ mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
 CONFIG
 apt-get install -y --force-yes mysql-server
 
+mysql -u root -p${MYSQL_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar'; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
+
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
 echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/openproject.list
 sudo apt-get update
 
 debconf-set-selections <<CONFIG
-openproject-mysql openproject/mysql/autoinstall boolean true
-openproject-mysql openproject/mysql/admin_password password ${MYSQL_PASSWORD}
-openproject-mysql openproject/mysql/admin_username string root
+openproject-mysql openproject/mysql/autoinstall select use an existing database
 openproject-mysql openproject/mysql/db_host string 127.0.0.1
 openproject-mysql openproject/mysql/db_source_host string 127.0.0.1
 openproject-mysql openproject/mysql/db_port string 3306
+openproject-mysql openproject/mysql/db_username string foo
+openproject-mysql openproject/mysql/db_password password bar
+openproject-mysql openproject/mysql/db_name string foobar
 openproject-apache2 openproject/server/autoinstall boolean true
 openproject-apache2 openproject/server/hostname string ${HOSTNAME}
 openproject-apache2 openproject/server/ssl boolean true
+openproject-apache2 openproject/server/ssl_ca string
 openproject-apache2 openproject/server/ssl_cert string /etc/ssl/certs/server.crt
-openproject-apache2 openproject/server/ssl_ca string /etc/ssl/certs/server.crt
 openproject-apache2 openproject/server/ssl_key string /etc/ssl/private/server.key
-openproject-smtp openproject/smtp/method string smtp
+openproject-smtp openproject/smtp/method select smtp
 openproject-smtp openproject/smtp/admin_email string cyril.rohr@gmail.com
 openproject-smtp openproject/smtp/password password ${SMTP_PASSWORD}
 openproject-smtp openproject/smtp/username string cyril.rohr@gmail.com
