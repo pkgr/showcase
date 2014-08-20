@@ -43,7 +43,7 @@ openssl req -new -x509 -nodes -days 1000 -key ca-key.pem -out ca-cert.pem -subj 
 openssl req -newkey rsa:2048 -days 1000 -nodes -keyout server-key.pem -out server-req.pem -subj "$REQ_SUBJ";
 openssl x509 -req -in server-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem;
 openssl rsa -in /etc/mysql/server-key.pem -out /etc/mysql/server-key.pem
-openssl req -newkey rsa:2048 -days 1000 -nodes -keyout client-key.pem -out client-req.pem -sub "$REQ_SUBJ";
+openssl req -newkey rsa:2048 -days 1000 -nodes -keyout client-key.pem -out client-req.pem -subj "$REQ_SUBJ";
 openssl x509 -req -in client-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out client-cert.pem;
 # to avoid SSL connection error: protocol version mismatch, http://askubuntu.com/questions/194074/enabling-ssl-in-mysql
 openssl rsa -in /etc/mysql/client-key.pem -out /etc/mysql/client-key.pem
@@ -54,7 +54,7 @@ ssl-ca=/etc/mysql/ca-cert.pem
 ssl-cert=/etc/mysql/server-cert.pem
 ssl-key=/etc/mysql/server-key.pem
 MYSQL
-service mysql reload
+service mysql restart
 
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
 echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/openproject.list
