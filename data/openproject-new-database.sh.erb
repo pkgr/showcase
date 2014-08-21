@@ -8,6 +8,7 @@ CODENAME="<%= codename %>"
 BRANCH="<%= branch %>"
 REPO_URL="<%= repo_url %>"
 SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
+APP_NAME="<%= app_name %>"
 
 apt-get update -qq
 apt-get install -y curl apt-transport-https sudo
@@ -33,33 +34,31 @@ CONFIG
 apt-get install -y --force-yes mysql-server
 
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
-echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/openproject.list
+echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/${APP_NAME}.list
 sudo apt-get update
 
 debconf-set-selections <<CONFIG
-openproject-mysql openproject/mysql/autoinstall select create a new database
-openproject-mysql openproject/mysql/admin_password password ${MYSQL_PASSWORD}
-openproject-mysql openproject/mysql/admin_username string root
-openproject-mysql openproject/mysql/db_host string 127.0.0.1
-openproject-mysql openproject/mysql/db_source_host string 127.0.0.1
-openproject-mysql openproject/mysql/db_port string 3306
-openproject-mysql openproject/mysql/ssl boolean false
-openproject-apache2 openproject/server/autoinstall boolean true
-openproject-apache2 openproject/server/hostname string ${HOSTNAME}
-openproject-apache2 openproject/server/ssl boolean true
-openproject-apache2 openproject/server/ssl_cert string /etc/ssl/certs/server.crt
-openproject-apache2 openproject/server/ssl_ca string /etc/ssl/certs/server.crt
-openproject-apache2 openproject/server/ssl_key string /etc/ssl/private/server.key
-openproject-smtp openproject/smtp/method select smtp
-openproject-smtp openproject/smtp/admin_email string cyril.rohr@gmail.com
-openproject-smtp openproject/smtp/password password ${SMTP_PASSWORD}
-openproject-smtp openproject/smtp/username string cyril.rohr@gmail.com
-openproject-smtp openproject/smtp/domain string ${HOSTNAME}
-openproject-smtp openproject/smtp/host string smtp.mandrillapp.com
-openproject-smtp openproject/smtp/port string 587
-openproject-svn-dav openproject/svn-dav/autoinstall boolean true
+${APP_NAME}-mysql ${APP_NAME}/mysql/autoinstall select create a new database
+${APP_NAME}-mysql ${APP_NAME}/mysql/admin_password password ${MYSQL_PASSWORD}
+${APP_NAME}-mysql ${APP_NAME}/mysql/admin_username string root
+${APP_NAME}-mysql ${APP_NAME}/mysql/db_host string 127.0.0.1
+${APP_NAME}-mysql ${APP_NAME}/mysql/db_source_host string 127.0.0.1
+${APP_NAME}-mysql ${APP_NAME}/mysql/db_port string 3306
+${APP_NAME}-mysql ${APP_NAME}/mysql/ssl boolean false
+${APP_NAME}-apache2 ${APP_NAME}/server/autoinstall boolean true
+${APP_NAME}-apache2 ${APP_NAME}/server/hostname string ${HOSTNAME}
+${APP_NAME}-apache2 ${APP_NAME}/server/ssl boolean true
+${APP_NAME}-apache2 ${APP_NAME}/server/ssl_cert string /etc/ssl/certs/server.crt
+${APP_NAME}-apache2 ${APP_NAME}/server/ssl_ca string /etc/ssl/certs/server.crt
+${APP_NAME}-apache2 ${APP_NAME}/server/ssl_key string /etc/ssl/private/server.key
+${APP_NAME}-smtp ${APP_NAME}/smtp/method select smtp
+${APP_NAME}-smtp ${APP_NAME}/smtp/admin_email string cyril.rohr@gmail.com
+${APP_NAME}-smtp ${APP_NAME}/smtp/password password ${SMTP_PASSWORD}
+${APP_NAME}-smtp ${APP_NAME}/smtp/username string cyril.rohr@gmail.com
+${APP_NAME}-smtp ${APP_NAME}/smtp/domain string ${HOSTNAME}
+${APP_NAME}-smtp ${APP_NAME}/smtp/host string smtp.mandrillapp.com
+${APP_NAME}-smtp ${APP_NAME}/smtp/port string 587
+${APP_NAME}-svn-dav ${APP_NAME}/svn-dav/autoinstall boolean true
 CONFIG
 
-sudo apt-get install openproject -y
-
-echo "http://${HOSTNAME}"
+sudo apt-get install ${APP_NAME} -y
