@@ -9,6 +9,10 @@ describe "OpenProject" do
         ps_output = ssh.exec!("ps -u someuser -f")
         expect(ps_output).to include("unicorn")
 
+        check_output = ssh.exec!("sudo openproject run check")
+        puts check_output
+        expect(check_output).to_not include("[ko]")
+
         visit "https://#{instance.hostname}"
         expect(page).to have_content("Sign in")
         click_on "Sign in"
