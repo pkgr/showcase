@@ -27,6 +27,10 @@ describe "OpenProject" do
         puts check_output
         expect(check_output).to_not include("[ko]")
 
+        # test redirection to HTTPS
+        visit url.sub("https", "http")
+        expect(page).to have_content("Sign in")
+
         visit url
         expect(page).to have_content("Sign in")
         click_on "Sign in"
