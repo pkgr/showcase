@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -ex
+
+export DEBIAN_FRONTEND=noninteractive
+
+CODENAME="<%= codename %>"
+BRANCH="<%= branch %>"
+REPO_URL="<%= repo_url %>"
+APP_NAME="gogs"
+
+apt-get update -qq
+apt-get install -y curl apt-transport-https sudo
+
+# fetch local machine hostname
+HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+
+# install MySQL, and populate master password
+MYSQL_PASSWORD="p4ssw0rd"
+debconf-set-selections <<CONFIG
+mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}
+mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
+CONFIG
+apt-get install -y --force-yes mysql-server
+mysql -uroot -p${MYSQL_PASSWORD} -e "create database ${APP_NAME};"
+
+wget -qO - https://deb.packager.io/key | sudo apt-key add -
+echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/${APP_NAME}.list
+sudo apt-get update
+
+sudo apt-get install ${APP_NAME} -y
+
+sudo apt-get install -y nginx
+
+# setup nginx configuration
+cat > /etc/nginx/sites-available/default <<EOF
+server {
+  listen          80;
+  server_name     ${HOSTNAME};
+  location / {
+    proxy_pass      http://localhost:6000;
+  }
+}
+EOF
+ # restart nginx
+sudo service nginx restart

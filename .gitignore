@@ -1,2 +1,4 @@
 apps/
 run.sh
+*.swp
+.profile
