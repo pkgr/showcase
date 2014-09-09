@@ -22,7 +22,7 @@ mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}
 mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
 CONFIG
 apt-get install -y --force-yes mysql-server
-mysql -uroot -p${MYSQL_PASSWORD} -e "create database ${APP_NAME};"
+mysql -uroot -p${MYSQL_PASSWORD} -e "create database if not exists ${APP_NAME};"
 
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
 echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/${APP_NAME}.list
