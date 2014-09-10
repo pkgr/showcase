@@ -1,6 +1,6 @@
 # Showcase
 
-This repo hosts tests that make sure that applications present in the PKGR [showcase](https://pkgr.io/showcase) are working properly, on all target distributions.
+This repo hosts tests that make sure that applications present in the Packager [showcase](https://packager.io/) are working properly, on all target distributions.
 
 ## How it works
 
@@ -32,8 +32,10 @@ If you're writing new tests, it is probably good to NOT terminate the EC2 instan
 
 ## Tested applications
 
-* Gitlab - <https://pkgr.io/apps/pkgr/gitlabhq>
-* Discourse - <https://pkgr.io/apps/pkgr/discourse>
+* Gitlab - <https://packager.io/gh/gitlabhq/gitlabhq>
+* Discourse - <https://packager.io/gh/pkgr/discourse>
+* OpenProject - <https://packager.io/gh/tessi/openproject>
+* Gogs (Go Git Service) - <https://packager.io/gh/pkgr/gogs>
 
 ## TODO
 
