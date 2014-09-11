@@ -27,9 +27,9 @@ describe "Discourse" do
         fill_in "Username", with: "helloworld"
         fill_in "Password", with: "p4ssw0rd"
 
-        click_button "Create Account"
+        click_button "Create New Account"
 
-        expect(page).to have_content("We sent an activation email to #{admin_email}")
+        expect(page).to have_content("We sent an activation email")
       end
     end
   end
@@ -40,7 +40,7 @@ describe "Discourse" do
       "ubuntu-14.04",
       "debian-7"
     ].map{|d| Distribution.new(d) }.each do |distribution|
-      it "deploys gitlab on #{distribution.name}" do
+      it "deploys discourse on #{distribution.name}" do
         template = Template.new(data_file("discourse.sh.erb"),
           codename: distribution.codename,
           branch: "pkgr",

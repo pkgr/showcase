@@ -8,8 +8,9 @@ CODENAME="<%= codename %>"
 BRANCH="<%= branch %>"
 ADMIN_EMAIL="<%= email %>"
 
-apt-get update -qq
+apt-get update
 apt-get install -y curl apt-transport-https sudo
+
 apt-get install -y postgresql postgresql-contrib redis-server
 
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
@@ -35,6 +36,7 @@ discourse config:set REDIS_URL=redis://127.0.0.1:6379
 discourse config:set SECRET_TOKEN=$(discourse run rake secret)
 # set this to the main admin email address
 discourse config:set DISCOURSE_DEVELOPER_EMAILS="${ADMIN_EMAIL}"
+discourse config:set DISCOURSE_HOSTNAME="${HOSTNAME}"
 
 discourse run rake db:migrate db:seed_fu
 
