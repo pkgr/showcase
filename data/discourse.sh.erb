@@ -12,6 +12,7 @@ locale-gen en_US.UTF-8
 
 apt-get update
 apt-get install -y curl apt-transport-https sudo
+apt-get update
 apt-get install -y postgresql postgresql-contrib redis-server
 
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
