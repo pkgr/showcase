@@ -36,9 +36,9 @@ describe "Discourse" do
 
   context "pkgr branch" do
     [
-      "ubuntu-12.04",
+      # "ubuntu-12.04",
       "ubuntu-14.04",
-      "debian-7"
+      # "debian-7"
     ].map{|d| Distribution.new(d) }.each do |distribution|
       it "deploys discourse on #{distribution.name}" do
         template = Template.new(data_file("discourse.sh.erb"),
