@@ -36,7 +36,7 @@ describe "Discourse" do
 
   context "pkgr branch" do
     [
-      # "ubuntu-12.04",
+      "ubuntu-12.04",
       "ubuntu-14.04",
       # "debian-7"
     ].map{|d| Distribution.new(d) }.each do |distribution|
