@@ -26,9 +26,11 @@ describe "Gogs" do
   context "stable" do
     [
       "ubuntu-14.04",
+      "ubuntu-12.04",
+      "debian-7"
     ].map{|d| Distribution.new(d) }.each do |distribution|
       it "deploys gogs on #{distribution.name}" do
-        template = Template.new(data_file("gogs.sh.erb"), codename: distribution.codename, branch: "pkgr", repo_url: "https://deb.packager.io/gh/pkgr/gogs")
+        template = Template.new(data_file("gogs.sh.erb"), codename: distribution.codename, branch: ENV.fetch('BRANCH') { "pkgr" }, repo_url: "https://deb.packager.io/gh/pkgr/gogs")
         command = Command.new(template.render, sudo: true)
         launch_test(distribution, command)
       end

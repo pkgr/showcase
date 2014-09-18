@@ -24,7 +24,7 @@ apt-get install -y postfix
 wget -qO - https://deb.pkgr.io/key | sudo apt-key add -
 
 rm -f /etc/apt/sources.list.d/pkgr.list
-echo "deb https://deb.pkgr.io/pkgr/discourse ${CODENAME} ${BRANCH}" | sudo tee -a /etc/apt/sources.list.d/pkgr.list
+echo "deb https://deb.packager.io/gh/pkgr/discourse ${CODENAME} ${BRANCH}" | sudo tee -a /etc/apt/sources.list.d/pkgr.list
 sudo apt-get update -qq
 sudo apt-get install -y discourse
 
