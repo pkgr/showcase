@@ -118,7 +118,7 @@ class Instance
   private
 
   def ssh_args
-    [hostname, user, {keys: [key_file], keys_only: true}]
+    [hostname, user, {keys: [key_file], keys_only: true, paranoid: false}]
   end
 
   def wait_for_ssh_readiness
