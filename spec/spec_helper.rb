@@ -23,7 +23,15 @@ def data_file(path)
   File.expand_path("../../data/#{path}", __FILE__)
 end
 
-def wait_until(timeout = 120, &block)
+def distributions
+  ENV.fetch('DISTRIBUTIONS') { "debian-7,ubuntu-12.04,ubuntu-14.04" }.split(",").map{|d| Distribution.new(d) }
+end
+
+def branch
+  ENV.fetch('BRANCH') { "pkgr" }
+end
+
+def wait_until(timeout = 180, &block)
   Timeout.timeout(timeout) do
     until block.call do
       sleep 10
