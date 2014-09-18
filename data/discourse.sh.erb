@@ -2,6 +2,10 @@
 
 set -e
 
+locale-gen --purge en_US.UTF-8
+echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
+. /etc/default/locale
+
 export DEBIAN_FRONTEND=noninteractive
 
 CODENAME="<%= codename %>"
