@@ -2,6 +2,9 @@
 
 set -ex
 
+locale-gen en_US en_US.UTF-8
+dpkg-reconfigure locales
+
 export DEBIAN_FRONTEND=noninteractive
 
 CODENAME="<%= codename %>"
