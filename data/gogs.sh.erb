@@ -25,6 +25,8 @@ debconf-set-selections <<CONFIG
 mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}
 mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
 CONFIG
+
+apt-get update -qq
 apt-get install -y --force-yes mysql-server
 mysql -uroot -p${MYSQL_PASSWORD} -e "create database if not exists ${APP_NAME};"
 
