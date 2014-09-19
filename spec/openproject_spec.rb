@@ -2,15 +2,11 @@ require File.expand_path('../spec_helper', __FILE__)
 
 describe "OpenProject" do
   def app_name
-    ENV.fetch('OPENPROJECT_APP_NAME') { "openproject" }
-  end
-
-  def branch
-    ENV.fetch('OPENPROJECT_BRANCH') { "packaging" }
+    ENV.fetch('APP_NAME') { "openproject" }
   end
 
   def repo_url
-    ENV.fetch('OPENPROJECT_REPO_URL') { "https://deb.packager.io/gh/crohr/openproject" }
+    ENV.fetch('REPO_URL') { "https://deb.packager.io/gh/crohr/openproject" }
   end
 
   def launch_test(distribution, command, tag_val = nil)
@@ -47,9 +43,7 @@ describe "OpenProject" do
   end
 
   context "packaging branch" do
-    [
-      "debian-7"
-    ].map{|d| Distribution.new(d) }.each do |distribution|
+    distributions.each do |distribution|
       it "deploys OpenProject on #{distribution.name}, with new database" do
         template = Template.new(
           data_file("openproject-new-database.sh.erb"),
