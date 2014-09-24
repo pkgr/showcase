@@ -5,6 +5,10 @@ describe "OpenProject" do
     ENV.fetch('APP_NAME') { "openproject" }
   end
 
+  def app_user
+    ENV.fetch('APP_USER') { app_name }
+  end
+
   def repo_url
     ENV.fetch('REPO_URL') { "https://deb.packager.io/gh/crohr/openproject" }
   end
@@ -14,9 +18,9 @@ describe "OpenProject" do
       instance.ssh(command) do |ssh|
         url = "https://#{instance.hostname}"
         puts url
-        wait_until { ssh.exec!("ps -u someuser -f").include?("unicorn worker") }
+        wait_until { ssh.exec!("ps -u #{app_user} -f").include?("unicorn worker") }
 
-        ps_output = ssh.exec!("ps -u someuser -f")
+        ps_output = ssh.exec!("ps -u #{app_user} -f")
         expect(ps_output).to include("unicorn")
 
         check_output = ssh.exec!("sudo #{app_name} run check")
