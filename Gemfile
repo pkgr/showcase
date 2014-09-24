@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'dotenv'
 gem 'rspec'
 gem 'rake'
 gem 'aws-sdk', require: 'aws-sdk'
