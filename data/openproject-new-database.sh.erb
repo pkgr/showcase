@@ -2,6 +2,10 @@
 
 set -e
 
+locale-gen --purge en_US.UTF-8
+echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
+. /etc/default/locale
+
 export DEBIAN_FRONTEND=noninteractive
 
 CODENAME="<%= codename %>"
@@ -17,7 +21,7 @@ apt-get install -y curl apt-transport-https sudo
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 
 # generate self-signed certificate to test SSL config
-openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
+openssl genrsa -des3 -passout pass:x -out server.pass.key 2048 &>/dev/null
 openssl rsa -passin pass:x -in server.pass.key -out server.key
 rm server.pass.key
 openssl req -new -key server.key -out server.csr -subj "/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
@@ -35,7 +39,7 @@ apt-get install -y --force-yes mysql-server
 
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
 echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/${APP_NAME}.list
-sudo apt-get update
+sudo apt-get update -qq
 
 debconf-set-selections <<CONFIG
 ${APP_NAME}-mysql ${APP_NAME}/mysql/autoinstall select create a new database

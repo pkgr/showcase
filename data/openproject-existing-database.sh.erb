@@ -2,6 +2,10 @@
 
 set -e
 
+locale-gen --purge en_US.UTF-8
+echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
+. /etc/default/locale
+
 export DEBIAN_FRONTEND=noninteractive
 
 CODENAME="<%= codename %>"
@@ -18,7 +22,7 @@ HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 REQ_SUBJ="/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
 
 # generate self-signed certificate to test SSL config
-openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
+openssl genrsa -des3 -passout pass:x -out server.pass.key 2048 &>/dev/null
 openssl rsa -passin pass:x -in server.pass.key -out server.key
 rm server.pass.key
 openssl req -new -key server.key -out server.csr -subj "${REQ_SUBJ}"
@@ -40,7 +44,7 @@ mysql -u root -p${MYSQL_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTI
 # https://mifosforge.jira.com/wiki/display/MIFOS/How+to+enable+MySQL+SSL+on+Ubuntu
 cd /etc/mysql
 rm -f *.pem
-openssl genrsa -out ca-key.pem 2048;
+openssl genrsa -out ca-key.pem 2048 &> /dev/null
 openssl req -new -x509 -nodes -days 1000 -key ca-key.pem -out ca-cert.pem -subj "${REQ_SUBJ}";
 openssl req -newkey rsa:2048 -days 1000 -nodes -keyout server-key.pem -out server-req.pem -subj "$REQ_SUBJ";
 openssl x509 -req -in server-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem;
@@ -60,7 +64,7 @@ service mysql restart
 
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
 echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/${APP_NAME}.list
-sudo apt-get update
+sudo apt-get update -qq
 
 debconf-set-selections <<CONFIG
 ${APP_NAME}-mysql ${APP_NAME}/mysql/autoinstall select use an existing database
