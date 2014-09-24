@@ -53,7 +53,7 @@ class Instance
 
       ec2_instance = ec2.instances.create(
         :image_id => ami_id,
-        :instance_type => 't1.micro',
+        :instance_type => ENV.fetch('INSTANCE_TYPE') { 't1.micro' },
         :count => 1,
         :security_groups => 'default',
         :key_pair => ec2.key_pairs[key_name]
