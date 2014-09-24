@@ -63,7 +63,7 @@ MYSQL
 service mysql restart
 
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
-echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/${APP_NAME}.list
+echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee > /etc/apt/sources.list.d/${APP_NAME}.list
 sudo apt-get update -qq
 
 debconf-set-selections <<CONFIG
