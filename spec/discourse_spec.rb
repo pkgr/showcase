@@ -16,7 +16,8 @@ describe "Discourse" do
         sleep 10
 
         visit "http://#{instance.hostname}"
-        expect(page).to have_content("Welcome to Discourse")
+        sleep 3
+        expect(page).to have_content("Congratulations, you installed Discourse")
 
         click_button "Log In"
 
