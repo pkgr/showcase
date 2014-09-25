@@ -16,7 +16,7 @@ describe "Discourse" do
         sleep 10
 
         # cold start
-        system("curl -ks "http://#{instance.hostname}")
+        system("curl -ks http://#{instance.hostname}")
 
         visit "http://#{instance.hostname}"
         expect(page).to have_content("Congratulations, you installed Discourse")
