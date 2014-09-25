@@ -24,9 +24,12 @@ describe "OpenProject" do
         expect(ps_output).to include("unicorn")
 
         # test check script
-        # check_output = ssh.exec!("sudo #{app_name} run check")
-        # puts check_output
-        # expect(check_output).to_not include("[ko]")
+        check_output = ssh.exec!("sudo #{app_name} run check")
+        puts check_output
+        expect(check_output).to_not include("[ko]")
+
+        # cold start
+        system("curl -ks --retry 10 #{url}")
 
         # test redirection to HTTPS
         visit url.sub("https", "http")
