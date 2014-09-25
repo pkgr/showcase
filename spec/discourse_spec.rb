@@ -12,14 +12,11 @@ describe "Discourse" do
         expect(ps_output).to include("sidekiq")
         expect(ps_output).to include("rails server -p 6000")
 
-        # Give time to rails server to boot.
-        sleep 10
-
         # cold start
-        system("curl -ks http://#{instance.hostname}")
+        system("curl -ks --retry 10 http://#{instance.hostname}")
 
         visit "http://#{instance.hostname}"
-        expect(page).to have_content("Congratulations, you installed Discourse")
+        expect(page).to have_content("Welcome to Discourse")
 
         click_button "Log In"
 
@@ -45,7 +42,7 @@ describe "Discourse" do
           branch: branch,
           email: admin_email
         )
-        command = Command.new(template.render, sudo: true)
+        command = Command.new(template.render, sudo: true, dry_run: dry_run?)
         launch_test(distribution, command)
       end
     end
