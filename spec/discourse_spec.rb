@@ -15,8 +15,10 @@ describe "Discourse" do
         # Give time to rails server to boot.
         sleep 10
 
+        # cold start
+        system("curl -ks "http://#{instance.hostname}")
+
         visit "http://#{instance.hostname}"
-        sleep 3
         expect(page).to have_content("Congratulations, you installed Discourse")
 
         click_button "Log In"
