@@ -8,11 +8,14 @@ class Distribution
   def ami_id
     case name
     when "debian-7"
-      "ami-3776795e"
+      "ami-86896dee" # hvm
+      # "ami-3776795e"
     when "ubuntu-12.04"
-      "ami-0b9c9f62"
+      "ami-1eab0176" # hvm
+      # "ami-0b9c9f62"
     when "ubuntu-14.04"
-      "ami-018c9568"
+      "ami-8afb51e2" # hvm
+      # "ami-018c9568"
     else
       raise "don't know how to launch ec2 vm for #{distribution}"
     end
