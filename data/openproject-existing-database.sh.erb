@@ -64,6 +64,9 @@ ssl-key=/etc/mysql/server-key.pem
 MYSQL
 service mysql restart
 
+# wait to make sure certificate date is > NOW, otherwise we could get SSL connection error: ASN: before date in the future
+sleep 70
+
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
 echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee > /etc/apt/sources.list.d/${APP_NAME}.list
 sudo apt-get update -qq

@@ -69,9 +69,15 @@ describe "OpenProject" do
         within "#menu-sidebar" do
           click_link "Repository"
         end
-        expect(page).to have_content("Subversion")
-        # FIXME once proper url is generated
-        expect(find_field("checkout_url").value).to eq("file:///var/db/#{app_name}/svn/#{project_name}")
+
+        if page.body.include?("Subversion")
+          # openproject-ee
+          # FIXME once proper url is generated
+          expect(find_field("checkout_url").value).to eq("file:///var/db/#{app_name}/svn/#{project_name}")
+        else
+          # openproject classic
+          expect(page).to have_content("View all revisions")
+        end
 
         # clone and commit a new file
         svn_args = "--trust-server-cert --non-interactive --username admin --password admin"
