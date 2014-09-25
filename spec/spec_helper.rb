@@ -33,6 +33,10 @@ def branch
   ENV.fetch('BRANCH') { "pkgr" }
 end
 
+def dry_run?
+  ENV.fetch('DRY_RUN') { "no" }.to_s == "yes"
+end
+
 def wait_until(timeout = 180, &block)
   Timeout.timeout(timeout) do
     until block.call do

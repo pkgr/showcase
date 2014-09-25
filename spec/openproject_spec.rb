@@ -18,19 +18,21 @@ describe "OpenProject" do
       instance.ssh(command) do |ssh|
         url = "https://#{instance.hostname}"
         puts url
-        wait_until { ssh.exec!("ps -u #{app_user} -f").include?("unicorn worker") }
 
+        wait_until { ssh.exec!("ps -u #{app_user} -f").include?("unicorn worker") }
         ps_output = ssh.exec!("ps -u #{app_user} -f")
         expect(ps_output).to include("unicorn")
 
-        check_output = ssh.exec!("sudo #{app_name} run check")
-        puts check_output
-        expect(check_output).to_not include("[ko]")
+        # test check script
+        # check_output = ssh.exec!("sudo #{app_name} run check")
+        # puts check_output
+        # expect(check_output).to_not include("[ko]")
 
         # test redirection to HTTPS
         visit url.sub("https", "http")
         expect(page).to have_content("Sign in")
 
+        # test sign in
         visit url
         expect(page).to have_content("Sign in")
         click_on "Sign in"
@@ -39,9 +41,56 @@ describe "OpenProject" do
         click_button "Login"
         expect(page).to have_content("OpenProject Admin")
 
+        # load configuration
         click_on "Modules"
-        click_on "Administration"
+        # be specific, otherwise it would click on "Landing Page Administration" for instance
+        find("a[title='Administration']").click
         expect(page).to have_content("Projects")
+        if page.body.include?("Load the default configuration")
+          click_button("Load the default configuration")
+        end
+
+        # create new project
+        project_name = "hello-#{Time.now.to_i}"
+        click_on("New project")
+        fill_in "Name", with: project_name
+        click_button "Save"
+        expect(page).to have_content("Successful creation")
+
+        # force cron to run earlier to create svn repo
+        ssh.exec!("sudo sed -i 's|*/10|*|' /etc/cron.d/openproject-create-svn-repositories")
+        sleep 70
+
+        # check repository settings
+        visit current_url
+        within "#menu-sidebar" do
+          click_link "Repository"
+        end
+        expect(page).to have_content("Subversion")
+        # FIXME once proper url is generated
+        expect(find_field("checkout_url").value).to eq("file:///var/db/#{app_name}/svn/#{project_name}")
+
+        # clone and commit a new file
+        svn_args = "--trust-server-cert --non-interactive --username admin --password admin"
+        ssh.exec!(%{
+cd /tmp && \
+svn checkout #{svn_args} #{url}/svn/#{project_name} && \
+cd #{project_name} && \
+echo world > README.md && \
+svn add README.md && \
+svn ci #{svn_args} -m 'commit message'\
+                  })
+
+        visit current_url
+        expect(page).to have_content("commit message")
+        expect(page).to have_content("README.md")
+
+        # test backup script
+        backup_output = ssh.exec!("sudo #{app_name} run backup 2>/dev/null")
+        expect(backup_output).to include("/var/db/#{app_name}/backup/mysql-dump-")
+        expect(backup_output).to include("/var/db/#{app_name}/backup/svn-repositories-")
+        expect(backup_output).to include("/var/db/#{app_name}/backup/attachments-")
+        expect(backup_output).to include("/var/db/#{app_name}/backup/conf-")
       end
     end
   end
@@ -56,7 +105,7 @@ describe "OpenProject" do
           repo_url: repo_url,
           app_name: app_name
         )
-        command = Command.new(template.render, sudo: true)
+        command = Command.new(template.render, sudo: true, dry_run: dry_run?)
         launch_test(distribution, command, "#{distribution.name} - openproject new database")
       end
 
@@ -68,7 +117,7 @@ describe "OpenProject" do
           repo_url: repo_url,
           app_name: app_name
         )
-        command = Command.new(template.render, sudo: true)
+        command = Command.new(template.render, sudo: true, dry_run: dry_run?)
         launch_test(distribution, command, "#{distribution.name} - openproject existing database")
       end
     end
