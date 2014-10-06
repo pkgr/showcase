@@ -33,7 +33,7 @@ yum install -y ${APP_NAME}
 
 cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
 mysql/autoinstall install
-mysql/ssl false
+mysql/ssl no
 server/autoinstall install
 server/hostname ${HOSTNAME}
 server/ssl yes
