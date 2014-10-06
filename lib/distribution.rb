@@ -59,4 +59,15 @@ class Distribution
       "redhat"
     end
   end
+
+  def root_device
+    case osfamily
+    when "debian"
+      "/dev/xvda"
+    when "redhat"
+      "/dev/sda1"
+    else
+      fail "no root_device set"
+    end
+  end
 end

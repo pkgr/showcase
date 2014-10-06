@@ -58,7 +58,7 @@ class Instance
         :security_group_ids => ENV.fetch('INSTANCE_SECURITY_GROUP_IDS') { 'sg-6e6f450b' }.split(","),
         :count => 1,
         :block_device_mappings => [{
-          :device_name => "/dev/sda1",
+          :device_name => distribution.root_device,
           :ebs => {
             :volume_size => 10, # 10 GiB
             :delete_on_termination => true
