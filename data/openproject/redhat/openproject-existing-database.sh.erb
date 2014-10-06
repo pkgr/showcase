@@ -34,12 +34,12 @@ yum install -y "${package}"
 service $service status || service $service start
 chkconfig $service on
 
-if mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "DO 1;" ; then
-  mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
-else
+if ! mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "DO 1;" ; then
   mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
   mysqladmin -u root --password="${MYSQL_ROOT_PASSWORD}" password "${MYSQL_ROOT_PASSWORD}"
 fi
+
+mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
 
 # generate MySQL SSL config
 # https://mifosforge.jira.com/wiki/display/MIFOS/How+to+enable+MySQL+SSL+on+Ubuntu
