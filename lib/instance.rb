@@ -57,6 +57,13 @@ class Instance
         :subnet => ENV.fetch('INSTANCE_SUBNET') { "subnet-30db2569" },
         :security_group_ids => ENV.fetch('INSTANCE_SECURITY_GROUP_IDS') { 'sg-6e6f450b' }.split(","),
         :count => 1,
+        :block_device_mappings => [{
+          :device_name => "/dev/sda1",
+          :ebs => {
+            :volume_size => 10, # 10 GiB
+            :delete_on_termination => true
+          }
+        }],
         :key_pair => ec2.key_pairs[key_name]
       )
       ec2_instance.tags[tag_key] = tag_val
@@ -101,6 +108,20 @@ class Instance
       puts "Executing command..."
 
       cmd = command.sudo? ? "sudo bash /tmp/runner" : "bash /tmp/runner"
+
+      ssh.open_channel do |ch|
+        # handle requiretty clause in sudoers
+        ch.request_pty do |ch, success|
+          abort "could not obtain pty" unless success
+
+          ch.exec("sudo sed -r -i 's|Defaults\s+requiretty||' /etc/sudoers") do |ch, success|
+            abort "could not remove requiretty from sudoers file" unless success
+            ch.on_data {|ch,data| puts data}
+            ch.on_extended_data {|ch,data| puts data}
+          end
+        end
+      end
+      ssh.loop
 
       ssh.exec!(cmd) do |channel, stream, data|
         lines = data.split("\n")

@@ -108,7 +108,7 @@ svn ci #{svn_args} -m 'commit message'\
     distributions.each do |distribution|
       it "deploys OpenProject on #{distribution.name}, with new database" do
         template = Template.new(
-          data_file("openproject-new-database.sh.erb"),
+          data_file("openproject/#{distribution.osfamily}/openproject-new-database.sh.erb"),
           codename: distribution.codename,
           branch: branch,
           repo_url: repo_url,
@@ -120,7 +120,7 @@ svn ci #{svn_args} -m 'commit message'\
 
       it "deploys OpenProject on #{distribution.name}, with existing database" do
         template = Template.new(
-          data_file("openproject-existing-database.sh.erb"),
+          data_file("openproject/#{distribution.osfamily}/openproject-existing-database.sh.erb"),
           codename: distribution.codename,
           branch: branch,
           repo_url: repo_url,

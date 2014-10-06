@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set -e
+
+CODENAME="<%= codename %>"
+BRANCH="<%= branch %>"
+REPO_URL="<%= repo_url %>"
+SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
+APP_NAME="<%= app_name %>"
+
+yum makecache
+yum install -y curl openssl
+
+# fetch local machine hostname
+HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+
+# generate self-signed certificate to test SSL config
+openssl genrsa -des3 -passout pass:x -out server.pass.key 2048 &>/dev/null
+openssl rsa -passin pass:x -in server.pass.key -out server.key
+rm server.pass.key
+openssl req -new -key server.key -out server.csr -subj "/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+mkdir -p /etc/ssl/certs /etc/ssl/private
+cp server.crt /etc/ssl/certs/
+cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
+
+rpm --import https://rpm.packager.io/key
+echo "[openproject]
+name=Repository for ${APP_NAME} application.
+baseurl=${REPO_URL}/${CODENAME}/${BRANCH}
+enabled=1" | sudo tee /etc/yum.repos.d/${APP_NAME}.repo
+yum install -y ${APP_NAME}
+
+cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
+mysql/autoinstall install
+mysql/ssl false
+server/autoinstall install
+server/hostname ${HOSTNAME}
+server/ssl yes
+server/ssl_cert /etc/ssl/certs/server.crt
+server/ssl_ca /etc/ssl/certs/server.crt
+server/ssl_key /etc/ssl/private/server.key
+smtp/autoinstall smtp
+smtp/admin_email cyril.rohr@gmail.com
+smtp/password ${SMTP_PASSWORD}
+smtp/username cyril.rohr@gmail.com
+smtp/domain ${HOSTNAME}
+smtp/host smtp.mandrillapp.com
+smtp/port 587
+svn-dav/repositories /var/db/${APP_NAME}/svn
+memcached/autoinstall install
+CONFIG
+
+${APP_NAME} configure

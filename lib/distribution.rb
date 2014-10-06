@@ -16,6 +16,8 @@ class Distribution
     when "ubuntu-14.04"
       "ami-8afb51e2" # hvm
       # "ami-018c9568"
+    when "fedora-20"
+      "ami-6e7da906" # hvm
     else
       raise "don't know how to launch ec2 vm for #{distribution}"
     end
@@ -27,6 +29,8 @@ class Distribution
       "ubuntu"
     when /debian/
       "admin"
+    when /fedora/
+      "fedora"
     else
       "root"
     end
@@ -40,8 +44,19 @@ class Distribution
       "precise"
     when "ubuntu-14.04"
       "trusty"
+    when "fedora-20"
+      "fedora20"
     else
       raise "don't know the codename mapping for #{distribution}"
+    end
+  end
+
+  def osfamily
+    case name
+    when /debian/, /ubuntu/
+      "debian"
+    when /fedora/, /redhat/, /centos/
+      "redhat"
     end
   end
 end
