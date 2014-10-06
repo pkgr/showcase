@@ -2,101 +2,104 @@
 
 set -e
 
-locale-gen --purge en_US.UTF-8
-echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
-. /etc/default/locale
-
-export DEBIAN_FRONTEND=noninteractive
-
 CODENAME="<%= codename %>"
 BRANCH="<%= branch %>"
 REPO_URL="<%= repo_url %>"
 SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
 APP_NAME="<%= app_name %>"
 
-apt-get update -qq
-apt-get install -y curl apt-transport-https sudo
+yum makecache
+yum install -y curl openssl
 
 # fetch local machine hostname
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
-REQ_SUBJ="/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
+REQ_SUBJ_SERVER="/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
+REQ_SUBJ_CLIENT="/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=client.${HOSTNAME}"
+MYSQL_ROOT_PASSWORD="p4ssw0rd"
 
 # generate self-signed certificate to test SSL config
 openssl genrsa -des3 -passout pass:x -out server.pass.key 2048 &>/dev/null
 openssl rsa -passin pass:x -in server.pass.key -out server.key
 rm server.pass.key
-openssl req -new -key server.key -out server.csr -subj "${REQ_SUBJ}"
+openssl req -new -key server.key -out server.csr -subj "${REQ_SUBJ_SERVER}"
 openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+mkdir -p /etc/ssl/certs /etc/ssl/private
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
-# install MySQL, and populate master password
-MYSQL_PASSWORD="p4ssw0rd"
-debconf-set-selections <<CONFIG
-mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}
-mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
-CONFIG
-apt-get install -y --force-yes mysql-server
+package="mariadb-server"
+service="mariadb"
+# http://www.rackspace.com/knowledge_center/article/installing-mysql-server-on-centos
+yum install -y "${package}"
+service $service status || service $service start
+chkconfig $service on
 
-mysql -u root -p${MYSQL_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
-
-mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p${MYSQL_PASSWORD}
+if mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "DO 1;" ; then
+  mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
+else
+  mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
+  mysqladmin -u root --password="${MYSQL_ROOT_PASSWORD}" password "${MYSQL_ROOT_PASSWORD}"
+fi
 
 # generate MySQL SSL config
 # https://mifosforge.jira.com/wiki/display/MIFOS/How+to+enable+MySQL+SSL+on+Ubuntu
+mkdir -p /etc/mysql
 cd /etc/mysql
 rm -f *.pem
 openssl genrsa -out ca-key.pem 2048 &> /dev/null
-openssl req -new -x509 -nodes -days 1000 -key ca-key.pem -out ca-cert.pem -subj "${REQ_SUBJ}";
-openssl req -newkey rsa:2048 -days 1000 -nodes -keyout server-key.pem -out server-req.pem -subj "$REQ_SUBJ";
+openssl req -new -x509 -nodes -days 1000 -key ca-key.pem -out ca-cert.pem -subj '/DC=com/DC=example/CN=ca';
+openssl req -newkey rsa:2048 -days 1000 -nodes -keyout server-key.pem -out server-req.pem -subj '/DC=com/DC=example/CN=server';
 openssl x509 -req -in server-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem;
-openssl rsa -in /etc/mysql/server-key.pem -out /etc/mysql/server-key.pem
-openssl req -newkey rsa:2048 -days 1000 -nodes -keyout client-key.pem -out client-req.pem -subj "$REQ_SUBJ";
+openssl rsa -in server-key.pem -out server-key.pem
+openssl req -newkey rsa:2048 -days 1000 -nodes -keyout client-key.pem -out client-req.pem -subj '/DC=com/DC=example/CN=client';
 openssl x509 -req -in client-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out client-cert.pem;
 # to avoid SSL connection error: protocol version mismatch, http://askubuntu.com/questions/194074/enabling-ssl-in-mysql
-openssl rsa -in /etc/mysql/client-key.pem -out /etc/mysql/client-key.pem
+openssl rsa -in client-key.pem -out client-key.pem
 
-cat > /etc/mysql/conf.d/ssl.cnf <<MYSQL
+cat > /etc/my.cnf.d/ssl.cnf <<MYSQL
 [mysqld]
 ssl-ca=/etc/mysql/ca-cert.pem
 ssl-cert=/etc/mysql/server-cert.pem
 ssl-key=/etc/mysql/server-key.pem
 MYSQL
-service mysql restart
+service $service restart
 
 # wait to make sure certificate date is > NOW, otherwise we could get SSL connection error: ASN: before date in the future
 sleep 70
 
-wget -qO - https://deb.packager.io/key | sudo apt-key add -
-echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee > /etc/apt/sources.list.d/${APP_NAME}.list
-sudo apt-get update -qq
+rpm --import https://rpm.packager.io/key
+echo "[${APP_NAME}]
+name=Repository for ${APP_NAME} application.
+baseurl=${REPO_URL}/${CODENAME}/${BRANCH}
+enabled=1" | sudo tee /etc/yum.repos.d/${APP_NAME}.repo
+yum install -y ${APP_NAME}
 
-debconf-set-selections <<CONFIG
-${APP_NAME}-mysql ${APP_NAME}/mysql/autoinstall select use an existing database
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_host string 127.0.0.1
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_source_host string 127.0.0.1
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_port string 3306
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_username string foo
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_password password bar
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_name string foobar
-${APP_NAME}-mysql ${APP_NAME}/mysql/ssl boolean true
-${APP_NAME}-mysql ${APP_NAME}/mysql/ssl_ca string /etc/mysql/ca-cert.pem
-${APP_NAME}-mysql ${APP_NAME}/mysql/ssl_cert string /etc/mysql/client-cert.pem
-${APP_NAME}-mysql ${APP_NAME}/mysql/ssl_key string /etc/mysql/client-key.pem
-${APP_NAME}-apache2 ${APP_NAME}/server/autoinstall boolean true
-${APP_NAME}-apache2 ${APP_NAME}/server/hostname string ${HOSTNAME}
-${APP_NAME}-apache2 ${APP_NAME}/server/ssl boolean true
-${APP_NAME}-apache2 ${APP_NAME}/server/ssl_ca string
-${APP_NAME}-apache2 ${APP_NAME}/server/ssl_cert string /etc/ssl/certs/server.crt
-${APP_NAME}-apache2 ${APP_NAME}/server/ssl_key string /etc/ssl/private/server.key
-${APP_NAME}-smtp ${APP_NAME}/smtp/method select smtp
-${APP_NAME}-smtp ${APP_NAME}/smtp/admin_email string cyril.rohr@gmail.com
-${APP_NAME}-smtp ${APP_NAME}/smtp/password password ${SMTP_PASSWORD}
-${APP_NAME}-smtp ${APP_NAME}/smtp/username string cyril.rohr@gmail.com
-${APP_NAME}-smtp ${APP_NAME}/smtp/domain string ${HOSTNAME}
-${APP_NAME}-smtp ${APP_NAME}/smtp/host string smtp.mandrillapp.com
-${APP_NAME}-smtp ${APP_NAME}/smtp/port string 587
-${APP_NAME}-svn-dav ${APP_NAME}/svn-dav/autoinstall boolean true
+cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
+mysql/autoinstall reuse
+mysql/db_host 127.0.0.1
+mysql/db_port 3306
+mysql/db_username foo
+mysql/db_password bar
+mysql/db_name foobar
+mysql/ssl yes
+mysql/ssl_ca /etc/mysql/ca-cert.pem
+mysql/ssl_cert /etc/mysql/client-cert.pem
+mysql/ssl_key /etc/mysql/client-key.pem
+server/autoinstall install
+server/hostname ${HOSTNAME}
+server/ssl yes
+server/ssl_cert /etc/ssl/certs/server.crt
+server/ssl_ca /etc/ssl/certs/server.crt
+server/ssl_key /etc/ssl/private/server.key
+smtp/autoinstall smtp
+smtp/admin_email cyril.rohr@gmail.com
+smtp/password ${SMTP_PASSWORD}
+smtp/username cyril.rohr@gmail.com
+smtp/domain ${HOSTNAME}
+smtp/host smtp.mandrillapp.com
+smtp/port 587
+svn-dav/repositories /var/db/${APP_NAME}/svn
+memcached/autoinstall install
 CONFIG
 
-sudo apt-get install ${APP_NAME} -y
+${APP_NAME} configure
