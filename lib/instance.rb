@@ -153,6 +153,16 @@ class Instance
           ssh.exec!("ls")
         end
       end
+    rescue Net::SSH::AuthenticationFailed => e
+      # sometimes we get authentication failed, but it works a few seconds later
+      if remaining_attempts > 0
+        puts "Authentication failed, retrying for at most 3 times..."
+        remaining_attempts = [remaining_attempts-1, 3].min
+        sleep 10
+        retry
+      else
+        raise e
+      end
     rescue Timeout::Error, Errno::ECONNREFUSED => e
       if remaining_attempts > 0
         puts "SSH not ready yet, retrying..."
