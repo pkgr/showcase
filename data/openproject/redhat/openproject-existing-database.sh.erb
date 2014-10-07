@@ -34,7 +34,7 @@ yum install -y "${package}"
 service $service status || service $service start
 chkconfig $service on
 
-if ! mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "DO 1;" ; then
+if ! mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "DO 0;" &>/dev/null ; then
   mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
   mysqladmin -u root --password="${MYSQL_ROOT_PASSWORD}" password "${MYSQL_ROOT_PASSWORD}"
 fi
@@ -77,6 +77,7 @@ yum install -y ${APP_NAME}
 cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
 mysql/autoinstall reuse
 mysql/db_host 127.0.0.1
+mysql/db_source_host 127.0.0.1
 mysql/db_port 3306
 mysql/db_username foo
 mysql/db_password bar
