@@ -94,6 +94,13 @@ svn ci #{svn_args} -m 'commit message'\
         expect(page).to have_content("commit message")
         expect(page).to have_content("README.md")
 
+        # Activity page makes use of Setting.host_name
+        within "#menu-sidebar" do
+          click_link "Activity"
+        end
+        expect(page).to have_content("Revision 1")
+        expect(page).to have_content("commit message")
+
         # test backup script
         backup_output = ssh.exec!("sudo #{app_name} run backup 2>/dev/null")
         expect(backup_output).to include("/var/db/#{app_name}/backup/mysql-dump-")

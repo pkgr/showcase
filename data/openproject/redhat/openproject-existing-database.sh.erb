@@ -14,7 +14,6 @@ yum install -y curl openssl
 # fetch local machine hostname
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 REQ_SUBJ_SERVER="/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
-REQ_SUBJ_CLIENT="/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=client.${HOSTNAME}"
 MYSQL_ROOT_PASSWORD="p4ssw0rd"
 
 # generate self-signed certificate to test SSL config
@@ -40,6 +39,8 @@ if ! mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "DO 0;" &>/dev/null ; then
 fi
 
 mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
+
+mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p${MYSQL_ROOT_PASSWORD}
 
 # generate MySQL SSL config
 # https://mifosforge.jira.com/wiki/display/MIFOS/How+to+enable+MySQL+SSL+on+Ubuntu
