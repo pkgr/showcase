@@ -6,8 +6,6 @@ locale-gen --purge en_US.UTF-8
 echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
 . /etc/default/locale
 
-export DEBIAN_FRONTEND=noninteractive
-
 CODENAME="<%= codename %>"
 BRANCH="<%= branch %>"
 REPO_URL="<%= repo_url %>"
@@ -29,42 +27,30 @@ openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
-# install MySQL, and populate master password
-MYSQL_PASSWORD="p4ssw0rd"
-debconf-set-selections <<CONFIG
-mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}
-mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
-CONFIG
-apt-get install -y --force-yes mysql-server
-
-mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p${MYSQL_PASSWORD}
-
 wget -qO - https://deb.packager.io/key | sudo apt-key add -
 echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee > /etc/apt/sources.list.d/${APP_NAME}.list
 sudo apt-get update -qq
 
-debconf-set-selections <<CONFIG
-${APP_NAME}-mysql ${APP_NAME}/mysql/autoinstall select create a new database
-${APP_NAME}-mysql ${APP_NAME}/mysql/admin_password password ${MYSQL_PASSWORD}
-${APP_NAME}-mysql ${APP_NAME}/mysql/admin_username string root
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_host string 127.0.0.1
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_source_host string 127.0.0.1
-${APP_NAME}-mysql ${APP_NAME}/mysql/db_port string 3306
-${APP_NAME}-mysql ${APP_NAME}/mysql/ssl boolean false
-${APP_NAME}-apache2 ${APP_NAME}/server/autoinstall boolean true
-${APP_NAME}-apache2 ${APP_NAME}/server/hostname string ${HOSTNAME}
-${APP_NAME}-apache2 ${APP_NAME}/server/ssl boolean true
-${APP_NAME}-apache2 ${APP_NAME}/server/ssl_cert string /etc/ssl/certs/server.crt
-${APP_NAME}-apache2 ${APP_NAME}/server/ssl_ca string /etc/ssl/certs/server.crt
-${APP_NAME}-apache2 ${APP_NAME}/server/ssl_key string /etc/ssl/private/server.key
-${APP_NAME}-smtp ${APP_NAME}/smtp/method select smtp
-${APP_NAME}-smtp ${APP_NAME}/smtp/admin_email string cyril.rohr@gmail.com
-${APP_NAME}-smtp ${APP_NAME}/smtp/password password ${SMTP_PASSWORD}
-${APP_NAME}-smtp ${APP_NAME}/smtp/username string cyril.rohr@gmail.com
-${APP_NAME}-smtp ${APP_NAME}/smtp/domain string ${HOSTNAME}
-${APP_NAME}-smtp ${APP_NAME}/smtp/host string smtp.mandrillapp.com
-${APP_NAME}-smtp ${APP_NAME}/smtp/port string 587
-${APP_NAME}-svn-dav ${APP_NAME}/svn-dav/autoinstall boolean true
+sudo apt-get install ${APP_NAME} -y
+
+cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
+mysql/autoinstall install
+mysql/ssl no
+server/autoinstall install
+server/hostname ${HOSTNAME}
+server/ssl yes
+server/ssl_cert /etc/ssl/certs/server.crt
+server/ssl_ca /etc/ssl/certs/server.crt
+server/ssl_key /etc/ssl/private/server.key
+smtp/autoinstall smtp
+smtp/admin_email cyril.rohr@gmail.com
+smtp/password ${SMTP_PASSWORD}
+smtp/username cyril.rohr@gmail.com
+smtp/domain ${HOSTNAME}
+smtp/host smtp.mandrillapp.com
+smtp/port 587
+svn-dav/repositories /var/db/${APP_NAME}/svn
+memcached/autoinstall install
 CONFIG
 
-sudo apt-get install ${APP_NAME} -y
+${APP_NAME} configure
