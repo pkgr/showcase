@@ -25,6 +25,16 @@ def data_file(path)
   File.expand_path("../../data/#{path}", __FILE__)
 end
 
+# Allow to pass a unique MANIFEST URL like https://rpm.packager.io/gh/crohr/openproject/fedora20/packaging-wizards
+unless ENV['MANIFEST'].nil?
+  manifest = URI(ENV['MANIFEST'])
+  gh, org, rep, distribution, branch = manifest.path.sub("/", "").split("/", 5)
+  path = manifest.path.sub([distribution, branch].join("/"), "").chop
+  ENV['REPO_URL'] = manifest.merge(URI(path)).to_s
+  ENV['DISTRIBUTIONS'] = distribution
+  ENV['BRANCH'] = branch
+end
+
 def distributions
   ENV.fetch('DISTRIBUTIONS') { "debian-7,ubuntu-12.04,ubuntu-14.04" }.split(",").map{|d| Distribution.new(d) }
 end
