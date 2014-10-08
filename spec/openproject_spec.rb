@@ -18,6 +18,7 @@ describe "OpenProject" do
       instance.ssh(command) do |ssh|
         url = "https://#{instance.hostname}"
         puts url
+        admin_password="admin"
 
         wait_until { ssh.exec!("ps -u #{app_user} -f").include?("unicorn worker") }
         ps_output = ssh.exec!("ps -u #{app_user} -f")
@@ -42,6 +43,17 @@ describe "OpenProject" do
         fill_in "Login", with: "admin"
         fill_in "Password", with: "admin"
         click_button "Login"
+
+        # does not work at the moment (server error in app/controllers/account_controller.rb:181:in `change_password')
+        if branch == "dev"
+          expect(page).to have_content("A new password is required")
+          fill_in "Password", with: admin_password
+          fill_in "New password", with: "1234p4ssw0rd"
+          fill_in "Confirmation", with: "1234p4ssw0rd"
+          click_button "Apply"
+          admin_password = "1234p4ssw0rd"
+        end
+
         expect(page).to have_content("OpenProject Admin")
 
         # load configuration
@@ -80,7 +92,7 @@ describe "OpenProject" do
         end
 
         # clone and commit a new file
-        svn_args = "--trust-server-cert --non-interactive --username admin --password admin"
+        svn_args = "--trust-server-cert --non-interactive --username admin --password #{admin_password}"
         ssh.exec!(%{
 cd /tmp && \
 svn checkout #{svn_args} #{url}/svn/#{project_name} && \
