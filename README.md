@@ -34,7 +34,7 @@ If you're writing new tests, it is probably good to NOT terminate the EC2 instan
 
 * Gitlab - <https://packager.io/gh/gitlabhq/gitlabhq>
 * Discourse - <https://packager.io/gh/pkgr/discourse>
-* OpenProject - <https://packager.io/gh/tessi/openproject>
+* OpenProject - <https://packager.io/gh/opf/openproject>
 * Gogs (Go Git Service) - <https://packager.io/gh/pkgr/gogs>
 
 ## TODO
