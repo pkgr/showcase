@@ -18,6 +18,8 @@ class Distribution
       # "ami-018c9568"
     when "fedora-20"
       "ami-6e7da906" # hvm
+    when "centos-6"
+      "ami-eec75e87" # hvm
     else
       raise "don't know how to launch ec2 vm for #{distribution}"
     end
