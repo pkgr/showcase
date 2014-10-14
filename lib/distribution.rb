@@ -33,6 +33,8 @@ class Distribution
       "admin"
     when /fedora/
       "fedora"
+    when /centos/
+      "ec2-user"
     else
       "root"
     end
@@ -48,6 +50,8 @@ class Distribution
       "trusty"
     when "fedora-20"
       "fedora20"
+    when "centos-6"
+      "centos6"
     else
       raise "don't know the codename mapping for #{distribution}"
     end
