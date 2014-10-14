@@ -45,12 +45,12 @@ mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p${MYSQL_PASSWORD
 cd /etc/mysql
 rm -f *.pem
 openssl genrsa -out ca-key.pem 2048 &> /dev/null
-openssl req -new -x509 -nodes -days 1000 -key ca-key.pem -out ca-cert.pem -subj '/DC=com/DC=example/CN=ca';
-openssl req -newkey rsa:2048 -days 1000 -nodes -keyout server-key.pem -out server-req.pem -subj '/DC=com/DC=example/CN=server';
-openssl x509 -req -in server-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem;
+openssl req -sha1 -new -x509 -nodes -days 1000 -key ca-key.pem -out ca-cert.pem -subj '/DC=com/DC=example/CN=ca';
+openssl req -sha1 -newkey rsa:2048 -days 1000 -nodes -keyout server-key.pem -out server-req.pem -subj '/DC=com/DC=example/CN=server';
+openssl x509 -sha1 -req -in server-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem;
 openssl rsa -in server-key.pem -out server-key.pem
-openssl req -newkey rsa:2048 -days 1000 -nodes -keyout client-key.pem -out client-req.pem -subj '/DC=com/DC=example/CN=client';
-openssl x509 -req -in client-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out client-cert.pem;
+openssl req -sha1 -newkey rsa:2048 -days 1000 -nodes -keyout client-key.pem -out client-req.pem -subj '/DC=com/DC=example/CN=client';
+openssl x509 -sha1 -req -in client-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 -out client-cert.pem;
 # to avoid SSL connection error: protocol version mismatch, http://askubuntu.com/questions/194074/enabling-ssl-in-mysql
 openssl rsa -in client-key.pem -out client-key.pem
 
