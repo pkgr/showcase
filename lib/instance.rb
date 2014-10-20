@@ -163,7 +163,7 @@ class Instance
       else
         raise e
       end
-    rescue Timeout::Error, Errno::ECONNREFUSED => e
+    rescue Timeout::Error, Errno::ETIMEDOUT, Errno::ECONNREFUSED => e
       if remaining_attempts > 0
         puts "SSH not ready yet, retrying..."
         remaining_attempts -= 1
