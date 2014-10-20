@@ -26,8 +26,15 @@ mkdir -p /etc/ssl/certs /etc/ssl/private
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
-package="mariadb-server"
-service="mariadb"
+package="mysql-server"
+service="mysqld"
+
+# fedora
+if ! yum info "${package}" &>/dev/null ; then
+  package="mariadb-server"
+  service="mariadb"
+fi
+
 # http://www.rackspace.com/knowledge_center/article/installing-mysql-server-on-centos
 yum install -y "${package}"
 service $service status || service $service start
@@ -57,7 +64,7 @@ openssl x509 -req -in client-req.pem -days 1000 -CA ca-cert.pem -CAkey ca-key.pe
 # to avoid SSL connection error: protocol version mismatch, http://askubuntu.com/questions/194074/enabling-ssl-in-mysql
 openssl rsa -in client-key.pem -out client-key.pem
 
-cat > /etc/my.cnf.d/ssl.cnf <<MYSQL
+cat >> /etc/my.cnf <<MYSQL
 [mysqld]
 ssl-ca=/etc/mysql/ca-cert.pem
 ssl-cert=/etc/mysql/server-cert.pem
