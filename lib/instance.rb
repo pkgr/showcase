@@ -101,35 +101,49 @@ class Instance
     tmpfile.close
 
     wait_for_ssh_readiness
+    puts "SSH is ready"
 
-    Net::SSH.start(*ssh_args) do |ssh|
-      puts "Uploading runner..."
-      ssh.scp.upload! tmpfile.path, "/tmp/runner"
-      puts "Executing command..."
+    remaining_attempts = 10
+    begin
+      Net::SSH.start(*ssh_args) do |ssh|
+        puts "Uploading runner..."
+        ssh.scp.upload! tmpfile.path, "/tmp/runner"
+        puts "Executing command..."
 
-      cmd = command.sudo? ? "sudo bash /tmp/runner" : "bash /tmp/runner"
+        cmd = command.sudo? ? "sudo bash /tmp/runner" : "bash /tmp/runner"
 
-      ssh.open_channel do |ch|
-        # handle requiretty clause in sudoers
-        ch.request_pty do |ch, success|
-          abort "could not obtain pty" unless success
+        ssh.open_channel do |ch|
+          # handle requiretty clause in sudoers
+          ch.request_pty do |ch, success|
+            abort "could not obtain pty" unless success
 
-          ch.exec("sudo sed -r -i 's|Defaults\s+requiretty||' /etc/sudoers") do |ch, success|
-            abort "could not remove requiretty from sudoers file" unless success
-            ch.on_data {|ch,data| puts data}
-            ch.on_extended_data {|ch,data| puts data}
+            ch.exec("sudo sed -r -i 's|Defaults\s+requiretty||' /etc/sudoers") do |ch, success|
+              abort "could not remove requiretty from sudoers file" unless success
+              ch.on_data {|ch,data| puts data}
+              ch.on_extended_data {|ch,data| puts data}
+            end
           end
         end
-      end
-      ssh.loop
+        ssh.loop
 
-      ssh.exec!(cmd) do |channel, stream, data|
-        lines = data.split("\n")
-        lines.each{|line| puts line.colorize(stream == :stdout ? :light_black : :light_red) }
-      end
+        ssh.exec!(cmd) do |channel, stream, data|
+          lines = data.split("\n")
+          lines.each{|line| puts line.colorize(stream == :stdout ? :light_black : :light_red) }
+        end
 
-      yield ssh if block_given?
+        yield ssh if block_given?
+      end
+    rescue Errno::ETIMEDOUT, Errno::ECONNREFUSED => e
+      if remaining_attempts > 0
+        puts "SSH not ready yet, retrying..."
+        remaining_attempts -= 1
+        sleep 5
+        retry
+      else
+        raise e
+      end
     end
+
   end
 
   def destroy
