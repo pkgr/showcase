@@ -66,6 +66,10 @@ class Instance
         }],
         :key_pair => ec2.key_pairs[key_name]
       )
+
+      # give time for the instance to be created
+      sleep 3
+
       ec2_instance.tags[tag_key] = tag_val
     else
       puts "Found an existing instance with #{tag_key}=#{tag_val.inspect}. Reusing..."

@@ -20,6 +20,8 @@ class Distribution
       "ami-6e7da906" # hvm
     when "centos-6"
       "ami-eec75e87" # hvm
+    when "rhel-6"
+      "ami-5b697332"
     else
       raise "don't know how to launch ec2 vm for #{distribution}"
     end
@@ -33,7 +35,7 @@ class Distribution
       "admin"
     when /fedora/
       "fedora"
-    when /centos/
+    when /centos/, /rhel/
       "ec2-user"
     else
       "root"
@@ -50,7 +52,7 @@ class Distribution
       "trusty"
     when "fedora-20"
       "fedora20"
-    when "centos-6"
+    when "centos-6", "rhel-6"
       "centos6"
     else
       raise "don't know the codename mapping for #{distribution}"
@@ -61,7 +63,7 @@ class Distribution
     case name
     when /debian/, /ubuntu/
       "debian"
-    when /fedora/, /redhat/, /centos/
+    when /fedora/, /redhat/, /centos/, /rhel/
       "redhat"
     end
   end
