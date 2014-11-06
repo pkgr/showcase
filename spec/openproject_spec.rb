@@ -66,6 +66,9 @@ describe "OpenProject" do
           click_button("Load the default configuration")
         end
 
+        # loading configuration can take some time
+        sleep 10
+
         # create new project
         project_name = "hello-#{Time.now.to_i}"
         click_on("New project")
