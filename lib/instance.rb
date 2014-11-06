@@ -163,7 +163,8 @@ class Instance
 
   def wait_for_ssh_readiness
     # debian images can be VERY slow
-    remaining_attempts = 30
+    connection_remaining_attempts = 30
+    authentication_remaining_attempts = 5
 
     begin
       Timeout.timeout(10) do
@@ -173,18 +174,18 @@ class Instance
       end
     rescue Net::SSH::AuthenticationFailed => e
       # sometimes we get authentication failed, but it works a few seconds later
-      if remaining_attempts > 0
+      if authentication_remaining_attempts > 0
         puts "Authentication failed, retrying for at most 3 times..."
-        remaining_attempts = [remaining_attempts-1, 3].min
+        authentication_remaining_attempts -= 1
         sleep 10
         retry
       else
         raise e
       end
     rescue Timeout::Error, Errno::ETIMEDOUT, Errno::ECONNREFUSED => e
-      if remaining_attempts > 0
+      if connection_remaining_attempts > 0
         puts "SSH not ready yet, retrying..."
-        remaining_attempts -= 1
+        connection_remaining_attempts -= 1
         sleep 10
         retry
       else
