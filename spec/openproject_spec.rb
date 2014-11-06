@@ -43,8 +43,7 @@ describe "OpenProject" do
         fill_in "Login", with: "admin"
         fill_in "Password", with: "admin"
 
-        # does not work at the moment (server error in app/controllers/account_controller.rb:181:in `change_password')
-        if ["release/4.0", "dev"].include?(branch)
+        if ["release/4.0", "dev", "stable"].include?(branch)
           click_button "Sign in"
           expect(page).to have_content("A new password is required")
           fill_in "Password", with: admin_password
