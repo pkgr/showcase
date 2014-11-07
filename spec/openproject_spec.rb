@@ -62,12 +62,12 @@ describe "OpenProject" do
         # be specific, otherwise it would click on "Landing Page Administration" for instance
         find("a[title='Administration']").click
         expect(page).to have_content("Projects")
-        if page.body.include?("Load the default configuration")
-          click_button("Load the default configuration")
-        end
-
-        # loading configuration can take some time
-        sleep 10
+        # if page.body.include?("Load the default configuration")
+        #   click_button("Load the default configuration")
+        # end
+        #
+        # # loading configuration can take some time
+        # sleep 10
 
         # create new project
         project_name = "hello-#{Time.now.to_i}"
