@@ -1,6 +1,14 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe "Gitlab" do
+  def app_name
+    ENV.fetch('APP_NAME') { "gitlab-ce" }
+  end
+
+  def repo_url
+    ENV.fetch('REPO_URL') { "https://deb.packager.io/gh/gitlabhq/gitlabhq" }
+  end
+
   def launch_test(distribution, command)
     Instance.launch(distribution) do |instance|
       instance.ssh(command) do |ssh|
@@ -20,45 +28,11 @@ describe "Gitlab" do
     end
   end
 
-  context "7-0-stable branch" do
-    [
-      "ubuntu-12.04",
-      "ubuntu-14.04",
-      "debian-7"
-    ].map{|d| Distribution.new(d) }.each do |distribution|
-      it "deploys gitlab on #{distribution.name}" do
-        template = Template.new(data_file("gitlab.sh.erb"), codename: distribution.codename, branch: "7-0-stable", repo_url: "https://deb.packager.io/gh/gitlabhq/gitlabhq")
-        command = Command.new(template.render, sudo: true)
-        launch_test(distribution, command)
-      end
-    end
-  end
-
-  context "6-9-stable branch" do
-    [
-      "ubuntu-12.04",
-      "ubuntu-14.04",
-      "debian-7"
-    ].map{|d| Distribution.new(d) }.each do |distribution|
-      it "deploys gitlab on #{distribution.name}" do
-        template = Template.new(data_file("gitlab.sh.erb"), codename: distribution.codename, branch: "6-9-stable", repo_url: "https://deb.pkgr.io/gitlabhq/gitlabhq")
-        command = Command.new(template.render, sudo: true)
-        launch_test(distribution, command)
-      end
-    end
-  end
-
-  context "pkgr branch" do
-    [
-      "ubuntu-12.04",
-      "ubuntu-14.04",
-      "debian-7"
-    ].map{|d| Distribution.new(d) }.each do |distribution|
-      it "deploys gitlab on #{distribution.name}" do
-        template = Template.new(data_file("gitlab.sh.erb"), codename: distribution.codename, branch: "pkgr", repo_url: "https://deb.pkgr.io/pkgr/gitlabhq")
-        command = Command.new(template.render, sudo: true)
-        launch_test(distribution, command)
-      end
+  distributions.each do |distribution|
+    it "deploys gitlab on #{distribution.name}" do
+      template = Template.new(data_file("gitlab.sh.erb"), codename: distribution.codename, branch: branch, repo_url: repo_url, app_name: app_name)
+      command = Command.new(template.render, sudo: true)
+      launch_test(distribution, command)
     end
   end
 end
