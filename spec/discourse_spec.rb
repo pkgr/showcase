@@ -1,7 +1,8 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe "Discourse" do
-  let(:admin_email) { ENV.fetch('ADMIN_EMAIL') { 'cyril.rohr@gmail.com' } }
+  let(:rand) { Time.now.to_i }
+  let(:admin_email) { ENV.fetch('ADMIN_EMAIL') { "cyril.rohr+discourse-test-#{rand}@gmail.com" } }
 
   def launch_test(distribution, command)
     Instance.launch(distribution) do |instance|
@@ -24,7 +25,7 @@ describe "Discourse" do
 
         fill_in "Name", with: "Hello World"
         fill_in "Email", with: admin_email
-        fill_in "Username", with: "helloworld"
+        fill_in "Username", with: "helloworld#{rand}"
         fill_in "Password", with: "p4ssw0rd"
 
         click_button "Create New Account"
