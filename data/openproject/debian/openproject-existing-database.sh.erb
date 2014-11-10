@@ -34,7 +34,7 @@ debconf-set-selections <<CONFIG
 mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}
 mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
 CONFIG
-apt-get install -y --force-yes mysql-server
+apt-get install -y -f --force-yes mysql-server
 
 mysql -u root -p${MYSQL_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
 
