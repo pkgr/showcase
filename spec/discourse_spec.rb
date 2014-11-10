@@ -29,7 +29,7 @@ describe "Discourse" do
 
         click_button "Create New Account"
 
-        expect(page).to have_content("We sent an activation email")
+        expect(page).to have_content("We sent an activation mail")
       end
     end
   end
