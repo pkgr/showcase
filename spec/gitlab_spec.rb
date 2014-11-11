@@ -32,15 +32,17 @@ describe "Gitlab" do
         system("curl -ks --retry 10 #{url}")
 
         visit url
+
         sign_in
         # in case we're re-running the test
         sign_in("p4ssw0rd") if page.body.include?("Sign in")
 
         if page.body.include?("Setup new password")
-          fill_in "Current password", with: "5iveL!fe"
-          fill_in "Password", with: "p4ssw0rd"
-          fill_in "Password confirmation", with: "p4ssw0rd"
-          click_button "Set new password"
+          fill_in "user_current_password", with: "5iveL!fe"
+          fill_in "user_password_profile", with: "p4ssw0rd"
+          fill_in "user_password_confirmation", with: "p4ssw0rd"
+          click_on "Set new password"
+
           sign_in("p4ssw0rd")
         end
 
@@ -63,6 +65,7 @@ describe "Gitlab" do
         end
 
         system(%{
+ssh-keyscan #{instance.hostname} >> ~/.ssh/known_hosts ; \
 ssh-agent bash -c " \
   ssh-add #{fixture("id_rsa")}; \
   cd /tmp && \
