@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+CODENAME="<%= codename %>"
+BRANCH="<%= branch %>"
+REPO_URL="<%= repo_url %>"
+APP_NAME="<%= app_name %>"
+SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
+
+apt-get update -qq
+apt-get install -y curl apt-transport-https sudo
+
+# fetch local machine hostname
+HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+
+wget -qO - https://deb.packager.io/key | sudo apt-key add -
+
+echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee /etc/apt/sources.list.d/${APP_NAME}.list
+sudo apt-get update -qq
+sudo apt-get install -y $APP_NAME
+
+cat <<INSTALLER > /etc/${APP_NAME}/installer.dat
+mysql/autoinstall install
+mysql/ssl no
+server/autoinstall install
+server/hostname ${HOSTNAME}
+server/ssl no
+redis/autoinstall install
+smtp/autoinstall smtp
+smtp/host smtp.mandrillapp.com
+smtp/port 587
+smtp/username cyril.rohr@gmail.com
+smtp/password ${SMTP_PASSWORD}
+smtp/domain ${HOSTNAME}
+smtp/admin_email cyril.rohr@gmail.com
+INSTALLER
+
+${APP_NAME} configure
+
+echo "http://${HOSTNAME}"

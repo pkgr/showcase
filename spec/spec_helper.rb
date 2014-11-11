@@ -25,6 +25,10 @@ def data_file(path)
   File.expand_path("../../data/#{path}", __FILE__)
 end
 
+def fixture(name)
+  File.expand_path("../../fixtures/#{name}", __FILE__)
+end
+
 # Allow to pass a unique MANIFEST URL like https://rpm.packager.io/gh/crohr/openproject/fedora20/packaging-wizards
 unless ENV['MANIFEST'].nil?
   manifest = URI(ENV['MANIFEST'])
