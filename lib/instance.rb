@@ -163,8 +163,8 @@ class Instance
 
   def wait_for_ssh_readiness
     # debian images can be VERY slow
-    connection_remaining_attempts = 30
-    authentication_remaining_attempts = 5
+    connection_remaining_attempts = 60
+    authentication_remaining_attempts = 15
 
     begin
       Timeout.timeout(10) do
