@@ -1,0 +1,58 @@
+#!/bin/bash
+
+set -e
+
+CODENAME="<%= codename %>"
+BRANCH="<%= branch %>"
+REPO_URL="<%= repo_url %>"
+APP_NAME="<%= app_name %>"
+
+yum makecache
+yum install -y curl openssl
+
+# fetch local machine hostname
+HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+MYSQL_ROOT_PASSWORD="p4ssw0rd"
+
+package="mysql-server"
+service="mysqld"
+
+# fedora
+if ! yum info "${package}" &>/dev/null ; then
+  package="mariadb-server"
+  service="mariadb"
+fi
+
+yum install -y "${package}"
+service $service status || service $service start
+chkconfig $service on
+
+if ! mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "DO 0;" &>/dev/null ; then
+  mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
+  mysqladmin -u root --password="${MYSQL_ROOT_PASSWORD}" password "${MYSQL_ROOT_PASSWORD}"
+fi
+
+mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE DATABASE IF NOT EXISTS ${APP_NAME}; use ${APP_NAME}; set global storage_engine=INNODB;"
+
+rpm --import https://rpm.packager.io/key
+echo "[${APP_NAME}]
+name=Repository for ${APP_NAME} application.
+baseurl=${REPO_URL}/${CODENAME}/${BRANCH}
+enabled=1" | sudo tee /etc/yum.repos.d/${APP_NAME}.repo
+yum install -y ${APP_NAME}
+
+rpm -Uhv http://nginx.org/packages/centos/6/noarch/RPMS/nginx-release-centos-6-0.el6.ngx.noarch.rpm
+yum install -y nginx
+service nginx status || service nginx start
+chkconfig nginx on
+
+cat > /etc/nginx/conf.d/default.conf <<EOF
+server {
+  listen          80;
+  server_name     ${HOSTNAME};
+  location / {
+    proxy_pass      http://localhost:6000;
+  }
+}
+EOF
+service nginx reload

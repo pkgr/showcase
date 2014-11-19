@@ -72,7 +72,7 @@ ssh-agent bash -c " \
   context "stable" do
     distributions.each do |distribution|
       it "deploys gogs on #{distribution.name}" do
-        template = Template.new(data_file("gogs.sh.erb"), codename: distribution.codename, branch: branch, repo_url: repo_url)
+        template = Template.new(data_file("gogs/#{distribution.osfamily}/gogs.sh.erb"), codename: distribution.codename, branch: branch, repo_url: repo_url, app_name: "gogs")
         command = Command.new(template.render, sudo: true, dry_run: dry_run?)
         launch_test(distribution, command)
       end
