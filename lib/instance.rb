@@ -53,7 +53,7 @@ class Instance
 
       ec2_instance = ec2.instances.create(
         :image_id => ami_id,
-        :instance_type => ENV.fetch('INSTANCE_TYPE') { 't2.micro' },
+        :instance_type => ENV.fetch('INSTANCE_TYPE') { distribution.instance_type },
         :subnet => ENV.fetch('INSTANCE_SUBNET') { "subnet-30db2569" },
         :security_group_ids => ENV.fetch('INSTANCE_SECURITY_GROUP_IDS') { 'sg-6e6f450b' }.split(","),
         :count => 1,

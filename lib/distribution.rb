@@ -17,7 +17,8 @@ class Distribution
       "ami-8afb51e2" # hvm
       # "ami-018c9568"
     when "fedora-20"
-      "ami-6e7da906" # hvm
+      # "ami-6e7da906" # hvm
+      "ami-1337187a"
     when "centos-6"
       "ami-eec75e87" # hvm
     when "rhel-6"
@@ -78,4 +79,14 @@ class Distribution
       fail "no root_device set"
     end
   end
+
+  def instance_type
+    case name
+    when /fedora/
+      "t1.micro"
+    else
+      "t2.micro"
+    end
+  end
+
 end
