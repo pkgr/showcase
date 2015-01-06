@@ -83,7 +83,7 @@ class Distribution
   def instance_type
     case name
     when /fedora/
-      "t1.micro"
+      "m1.small"
     else
       "t2.micro"
     end
