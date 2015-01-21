@@ -25,7 +25,7 @@ debconf-set-selections <<< "postfix postfix/mailname string ${HOSTNAME}"
 debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
 apt-get install -y postfix
 
-wget -qO - https://deb.pkgr.io/key | sudo apt-key add -
+wget -qO - https://deb.packager.io/key | sudo apt-key add -
 
 rm -f /etc/apt/sources.list.d/pkgr.list
 echo "deb https://deb.packager.io/gh/pkgr/discourse ${CODENAME} ${BRANCH}" | sudo tee -a /etc/apt/sources.list.d/pkgr.list
