@@ -68,7 +68,9 @@ class Instance
       )
 
       # give time for the instance to be created
-      sleep 3
+      5.times do
+        ec2_instance.exists? ? break : sleep(3)
+      end
 
       ec2_instance.tags[tag_key] = tag_val
     else

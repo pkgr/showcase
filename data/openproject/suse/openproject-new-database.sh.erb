@@ -8,7 +8,10 @@ REPO_URL="<%= repo_url %>"
 SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
 APP_NAME="<%= app_name %>"
 
-zypper install -y curl openssl
+until zypper install -y curl openssl ; do
+  echo "zypper still running"
+  sleep 5
+done
 
 # fetch local machine hostname
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
@@ -24,6 +27,7 @@ cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
 rpm --import https://rpm.packager.io/key
+zypper rr ${APP_NAME}
 zypper addrepo ${REPO_URL}/${CODENAME}/${BRANCH} ${APP_NAME}
 zypper install ${APP_NAME} -y
 
