@@ -23,6 +23,8 @@ class Distribution
       "ami-eec75e87" # hvm
     when "rhel-6"
       "ami-5b697332"
+    when "sles-12"
+      "ami-aeb532c6" # hvm
     else
       raise "don't know how to launch ec2 vm for #{distribution}"
     end
@@ -36,7 +38,7 @@ class Distribution
       "admin"
     when /fedora/
       "fedora"
-    when /centos/, /rhel/
+    when /centos/, /rhel/, /sles/
       "ec2-user"
     else
       "root"
@@ -55,6 +57,8 @@ class Distribution
       "fedora20"
     when "centos-6", "rhel-6"
       "centos6"
+    when "sles-12"
+      "sles12"
     else
       raise "don't know the codename mapping for #{distribution}"
     end
@@ -66,6 +70,8 @@ class Distribution
       "debian"
     when /fedora/, /redhat/, /centos/, /rhel/
       "redhat"
+    when /sles/
+      "suse"
     end
   end
 
@@ -73,7 +79,7 @@ class Distribution
     case osfamily
     when "debian"
       "/dev/xvda"
-    when "redhat"
+    when "redhat", "suse"
       "/dev/sda1"
     else
       fail "no root_device set"
