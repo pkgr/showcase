@@ -14,13 +14,14 @@ describe "Gogs" do
 
           visit "http://#{instance.hostname}"
 
+          # setup Gogs
           unless page.body.include?("Sign In")
             expect(page).to have_content("Install")
-            fill_in "passwd", with: "p4ssw0rd"
+            fill_in "db_passwd", with: "p4ssw0rd"
             fill_in "Application URL", with: "http://#{instance.hostname}"
             fill_in "Domain", with: instance.hostname
             fill_in "Username", with: "crohr"
-            fill_in "admin_pwd", with: "p4ssw0rd"
+            fill_in "admin_passwd", with: "p4ssw0rd"
             fill_in "Confirm Password", with: "p4ssw0rd"
             fill_in "E-mail", with: "cyril.rohr@gmail.com"
             click_button "Install Gogs"
