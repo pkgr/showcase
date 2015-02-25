@@ -3,3 +3,5 @@ run.sh
 *.swp
 .profile
 .env
+.kitchen/
+.kitchen.local.yml

@@ -1,0 +1,29 @@
+---
+driver:
+  name: ec2
+  aws_ssh_key_id: <%= File.basename(File.expand_path("~/.ssh/sandbox-key-dev")) %>
+  ssh_key: <%= File.expand_path("~/.ssh/sandbox-key-dev") %>
+  region: us-east-1
+  availability_zone: us-east-1c
+  require_chef_omnibus: false
+  flavor_id: t2.micro
+  subnet_id: "subnet-30db2569"
+  security_group_ids: ["sg-6e6f450b"]
+  ebs_volume_size: 6
+  ebs_delete_on_termination: true
+  aws_access_key_id: <%= ENV.fetch('AWS_ACCESS_KEY') %>
+  aws_secret_access_key: <%= ENV.fetch('AWS_SECRET_KEY') %>
+
+provisioner:
+  name: shell
+
+platforms:
+  - name: ubuntu-12.04
+    driver:
+      image_id: ami-1eab0176
+      username: ubuntu
+
+suites:
+  - name: default-openproject-new-database
+    provisioner:
+      script: ./bootstrap/openproject/openproject-new-database.sh
