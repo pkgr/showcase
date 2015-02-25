@@ -69,17 +69,12 @@ class Instance
 
       # give time for the instance to be created
       max_retries_attempts = 12
-      begin
-        ec2_instance.exists? || raise(AWS::EC2::Errors::InvalidInstanceID::NotFound)
-      rescue AWS::EC2::Errors::InvalidInstanceID::NotFound => e
+      until ec2_instance.exists? && ec2_instance.status == :running
         if max_retries_attempts > 0
           max_retries_attempts -= 1
-          puts "EC2 instance does not exist yet. Retrying..."
           sleep 10
-          retry
         else
-          puts "EC2 instance still does not exist. Aborting."
-          raise
+          raise "Instance is still not running. Aborting."
         end
       end
 
