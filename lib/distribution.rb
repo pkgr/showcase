@@ -8,8 +8,7 @@ class Distribution
   def ami_id
     case name
     when "debian-7"
-      "ami-5ae66932" # hvm
-      # "ami-3776795e"
+      "ami-e0efab88" # hvm
     when "ubuntu-12.04"
       "ami-1eab0176" # hvm
       # "ami-0b9c9f62"
