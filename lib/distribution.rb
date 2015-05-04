@@ -9,6 +9,8 @@ class Distribution
     case name
     when "debian-7"
       "ami-e0efab88" # hvm
+    when "debian-8"
+      "ami-144f4d7c" # hvm
     when "ubuntu-12.04"
       "ami-1eab0176" # hvm
       # "ami-0b9c9f62"
@@ -48,6 +50,8 @@ class Distribution
     case name
     when "debian-7"
       "wheezy"
+    when "debian-8"
+      "jessie"
     when "ubuntu-12.04"
       "precise"
     when "ubuntu-14.04"
