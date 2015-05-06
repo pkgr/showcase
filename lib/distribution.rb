@@ -41,6 +41,8 @@ class Distribution
       "admin"
     when /fedora/
       "fedora"
+    when "centos-7"
+      "centos"
     when /centos/, /rhel/, /sles/
       "ec2-user"
     else
