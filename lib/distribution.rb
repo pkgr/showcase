@@ -22,6 +22,8 @@ class Distribution
       "ami-1337187a"
     when "centos-6"
       "ami-eec75e87" # hvm
+    when "centos-7"
+      "ami-96a818fe" # hvm
     when "rhel-6"
       "ami-5b697332"
     when "sles-12"
@@ -60,6 +62,8 @@ class Distribution
       "fedora20"
     when "centos-6", "rhel-6"
       "centos6"
+    when "centos-7"
+      "centos7"
     when "sles-12"
       "sles12"
     else
