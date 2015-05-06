@@ -41,10 +41,14 @@ baseurl=${REPO_URL}/${CODENAME}/${BRANCH}
 enabled=1" | sudo tee /etc/yum.repos.d/${APP_NAME}.repo
 yum install -y ${APP_NAME}
 
-rpm -Uhv http://nginx.org/packages/centos/6/noarch/RPMS/nginx-release-centos-6-0.el6.ngx.noarch.rpm
+yum install -y epel-release
 yum install -y nginx
+
 service nginx status || service nginx start
 chkconfig nginx on
+
+# required for proxy pass directives to work
+setsebool -P httpd_can_network_connect 1
 
 cat > /etc/nginx/conf.d/default.conf <<EOF
 server {
