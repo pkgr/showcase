@@ -18,7 +18,6 @@ describe "OpenProject" do
       instance.ssh(command) do |ssh|
         url = "https://#{instance.hostname}"
         puts url
-        admin_password="admin"
 
         wait_until { ssh.exec!("ps -u #{app_user} -f").include?("unicorn worker") }
         ps_output = ssh.exec!("ps -u #{app_user} -f")
@@ -42,32 +41,27 @@ describe "OpenProject" do
         click_on "Sign in"
         fill_in "Login", with: "admin"
         fill_in "Password", with: "admin"
+        click_button "Sign in"
 
-        if ["release/4.1", "release/4.0", "dev", "stable", "dev-packaging"].include?(branch)
+        admin_password = "1234p4ssw0rd"
+        if page.body.include?("Sign in")
+          fill_in "Login", with: "admin"
+          fill_in "Password", with: admin_password
           click_button "Sign in"
+        else
           expect(page).to have_content("A new password is required")
           fill_in "Password", with: admin_password
-          fill_in "New password", with: "1234p4ssw0rd"
-          fill_in "Confirmation", with: "1234p4ssw0rd"
+          fill_in "New password", with: admin_password
+          fill_in "Confirmation", with: admin_password
           click_button "Apply"
-          admin_password = "1234p4ssw0rd"
-        else
-          click_button "Login"
         end
 
         expect(page).to have_content("OpenProject Admin")
 
         # load configuration
-        click_on "Modules"
-        # be specific, otherwise it would click on "Landing Page Administration" for instance
-        find("a[title='Administration']").click
+        click_on "Projects"
+        click_on "View all projects"
         expect(page).to have_content("Projects")
-        # if page.body.include?("Load the default configuration")
-        #   click_button("Load the default configuration")
-        # end
-        #
-        # # loading configuration can take some time
-        # sleep 10
 
         # create new project
         project_name = "hello-#{Time.now.to_i}"

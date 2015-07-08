@@ -39,18 +39,21 @@ describe "Gitlab" do
 
         if page.body.include?("Setup new password")
           fill_in "user_current_password", with: "5iveL!fe"
-          fill_in "user_password_profile", with: "p4ssw0rd"
+          fill_in "user_password", with: "p4ssw0rd"
           fill_in "user_password_confirmation", with: "p4ssw0rd"
           click_on "Set new password"
 
           sign_in("p4ssw0rd")
         end
 
-        expect(page).to have_content("Activity")
-        expect(page).to have_content("Projects")
+        expect(page).to have_content("Dashboard")
 
-        find("a[data-original-title='New project']").click
-        fill_in "Project name", with: "hello-#{rand}"
+        if page.body.include?("New Project")
+          click_on "New Project"
+        else
+          click_on "New project"
+        end
+        fill_in "Project path", with: "hello-#{rand}"
         fill_in "Description", with: "some description"
         click_button "Create project"
 
@@ -60,6 +63,7 @@ describe "Gitlab" do
 
         if page.has_link?("add an SSH key")
           click_link "add an SSH key"
+          fill_in "Title", with: "key-#{rand}"
           fill_in "Key", with: File.read(fixture("id_rsa.pub"))
           click_button "Add key"
         end
@@ -85,7 +89,7 @@ ssh-agent bash -c " \
 
   distributions.each do |distribution|
     it "deploys gitlab on #{distribution.name}" do
-      template = Template.new(data_file("gitlab-mysql.sh.erb"), codename: distribution.codename, branch: branch, repo_url: repo_url, app_name: app_name)
+      template = Template.new(data_file("gitlab.sh.erb"), codename: distribution.codename, branch: branch, repo_url: repo_url, app_name: app_name)
       command = Command.new(template.render, sudo: true, dry_run: dry_run?)
       launch_test(distribution, command)
     end
