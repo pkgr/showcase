@@ -44,16 +44,18 @@ describe "OpenProject" do
         click_button "Sign in"
 
         admin_password = "1234p4ssw0rd"
-        if page.body.include?("Sign in")
+        if page.body.include?("Change password")
+          expect(page).to have_content("A new password is required")
+          within "#main" do
+            fill_in "Password", with: "admin"
+            fill_in "New password", with: admin_password
+            fill_in "Confirmation", with: admin_password
+            click_button "Apply"
+          end
+        else
           fill_in "Login", with: "admin"
           fill_in "Password", with: admin_password
           click_button "Sign in"
-        else
-          expect(page).to have_content("A new password is required")
-          fill_in "Password", with: admin_password
-          fill_in "New password", with: admin_password
-          fill_in "Confirmation", with: admin_password
-          click_button "Apply"
         end
 
         expect(page).to have_content("OpenProject Admin")
