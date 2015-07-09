@@ -28,6 +28,14 @@ describe "OpenProject" do
         puts check_output
         expect(check_output).to_not include("[ko]")
 
+        if branch >= "release/4.2"
+          puts "Checking JS bundles..."
+          js_bundles_output = ssh.exec!("ls -al /opt/openproject/app/assets/javascripts/bundles/")
+          expect(js_bundles_output).to include("openproject-translations.js")
+          expect(js_bundles_output).to include("openproject-global.js")
+          expect(js_bundles_output).to include("openproject-core-app.js")
+        end
+
         # cold start
         system("curl -ks --retry 10 #{url}")
 
@@ -60,7 +68,6 @@ describe "OpenProject" do
 
         expect(page).to have_content("OpenProject Admin")
 
-        # load configuration
         click_on "Projects"
         click_on "View all projects"
         expect(page).to have_content("Projects")
