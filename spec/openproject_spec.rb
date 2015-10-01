@@ -19,6 +19,18 @@ describe "OpenProject" do
         url = "https://#{instance.hostname}"
         puts url
 
+        if distribution.el?
+          chkconfig_output = ssh.exec!("sudo chkconfig --list httpd")
+          expect(chkconfig_output).to include("on")
+          chkconfig_output = ssh.exec!("sudo chkconfig --list memcached")
+          expect(chkconfig_output).to include("on")
+        elsif distribution.suse?
+          chkconfig_output = ssh.exec!("sudo chkconfig --list apache2")
+          expect(chkconfig_output).to include("on")
+          chkconfig_output = ssh.exec!("sudo chkconfig --list memcached")
+          expect(chkconfig_output).to include("on")
+        end
+
         wait_until { ssh.exec!("ps -u #{app_user} -f").include?("unicorn worker") }
         ps_output = ssh.exec!("ps -u #{app_user} -f")
         expect(ps_output).to include("unicorn")

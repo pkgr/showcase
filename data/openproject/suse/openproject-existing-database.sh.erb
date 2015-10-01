@@ -73,7 +73,7 @@ sleep 70
 rpm --import https://rpm.packager.io/key
 zypper rr ${APP_NAME}
 zypper addrepo ${REPO_URL}/${CODENAME}/${BRANCH} ${APP_NAME}
-zypper install -y ${APP_NAME}
+zypper --non-interactive install -y ${APP_NAME}
 
 cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
 mysql/autoinstall reuse

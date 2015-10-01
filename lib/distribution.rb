@@ -73,6 +73,18 @@ class Distribution
     end
   end
 
+  def el?
+    osfamily == "redhat"
+  end
+
+  def suse?
+    osfamily == "suse"
+  end
+
+  def debian?
+    osfamily == "debian"
+  end
+
   def osfamily
     case name
     when /debian/, /ubuntu/
