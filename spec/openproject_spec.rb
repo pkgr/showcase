@@ -31,9 +31,12 @@ describe "OpenProject" do
           expect(chkconfig_output).to include("on")
         end
 
-        wait_until { ssh.exec!("ps -u #{app_user} -f").include?("unicorn worker") }
-        ps_output = ssh.exec!("ps -u #{app_user} -f")
-        expect(ps_output).to include("unicorn")
+        wait_until(60*5) do
+          ps_output = ssh.exec!("ps -u #{app_user} -f")
+          puts "ps output:"
+          puts ps_output
+          ps_output.include?("unicorn worker")
+        end
 
         # test check script
         check_output = ssh.exec!("sudo #{app_name} run check")
