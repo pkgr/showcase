@@ -28,10 +28,11 @@ mkdir -p /etc/ssl/certs /etc/ssl/private
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
-package="mariadb"
 service="mysql"
 
-zypper install -y "${package}"
+# mariadb on sles-12
+zypper install -y mariadb || zypper install -y mysql
+
 service $service status || service $service start
 chkconfig $service on
 
@@ -70,7 +71,12 @@ service $service restart
 # wait to make sure certificate date is > NOW, otherwise we could get SSL connection error: ASN: before date in the future
 sleep 70
 
-rpm --import https://rpm.packager.io/key
+rpm --import https://rpm.packager.io/key || (
+  # sles-11
+  wget https://rpm.packager.io/key
+  rpm --import key
+)
+
 zypper rr ${APP_NAME}
 zypper addrepo ${REPO_URL}/${CODENAME}/${BRANCH} ${APP_NAME}
 zypper --non-interactive install -y ${APP_NAME}

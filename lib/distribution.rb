@@ -28,6 +28,8 @@ class Distribution
       "ami-5b697332"
     when "sles-12"
       "ami-aeb532c6" # hvm
+    when "sles-11"
+      "ami-3bf32750" # hvm
     else
       raise "don't know how to launch ec2 vm for #{distribution}"
     end
@@ -68,6 +70,8 @@ class Distribution
       "centos7"
     when "sles-12"
       "sles12"
+    when "sles-11"
+      "sles11"
     else
       raise "don't know the codename mapping for #{distribution}"
     end
