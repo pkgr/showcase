@@ -6,7 +6,7 @@ describe "OpenProject" do
   end
 
   def app_user
-    ENV.fetch('APP_USER') { app_name }
+    ENV.fetch('APP_USER') { "openproject" }
   end
 
   def repo_url
@@ -70,10 +70,10 @@ describe "OpenProject" do
         if page.body.include?("Change password")
           expect(page).to have_content("A new password is required")
           within "#main" do
-            fill_in "Password", with: "admin"
+            fill_in "Current password", with: "admin"
             fill_in "New password", with: admin_password
             fill_in "Confirmation", with: admin_password
-            click_button "Apply"
+            click_on "Save"
           end
         else
           fill_in "Login", with: "admin"
@@ -83,35 +83,42 @@ describe "OpenProject" do
 
         expect(page).to have_content("OpenProject Admin")
 
-        click_on "Projects"
-        click_on "View all projects"
+        within "#header" do
+          click_on "Projects"
+          click_on "View all projects"
+        end
+
         expect(page).to have_content("Projects")
+        expect(page).to have_content("Demo project")
 
         # create new project
         project_name = "hello-#{Time.now.to_i}"
         click_on("New project")
         fill_in "Name", with: project_name
-        click_button "Save"
+        click_button "Create"
         expect(page).to have_content("Successful creation")
+        expect(page).to have_content("Settings")
 
-        # force cron to run earlier to create svn repo
-        ssh.exec!("sudo sed -i 's|*/10|*|' /etc/cron.d/openproject-create-svn-repositories")
-        sleep 70
+        within ".tabs" do
+          click_on "Modules"
+        end
+        check "Repository"
+        check "Activity"
+        click_on "Save"
+        expect(page).to have_content("Successful update")
 
-        # check repository settings
-        visit current_url
+        click_on "Repository"
+        select "Subversion", from: "Source control management system"
+        find(:xpath, "//input[@name='scm_type' and @value='managed']").click
+        click_on "Create"
+        expect(page).to have_content("The repository has been registered")
+
         within "#menu-sidebar" do
-          click_link "Repository"
+          click_on "Repository"
         end
 
-        if page.body.include?("Subversion")
-          # openproject-ee
-          # FIXME once proper url is generated
-          expect(find_field("checkout_url").value).to eq("file:///var/db/#{app_name}/svn/#{project_name}")
-        else
-          # openproject classic
-          expect(page).to have_content("View all revisions")
-        end
+        expect(page).to have_content("Subversion repository")
+        expect(page).to have_content("There is currently nothing to display")
 
         # clone and commit a new file
         svn_args = "--trust-server-cert --non-interactive --username admin --password #{admin_password}"

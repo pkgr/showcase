@@ -107,8 +107,12 @@ smtp/username cyril.rohr@gmail.com
 smtp/domain ${HOSTNAME}
 smtp/host smtp.mandrillapp.com
 smtp/port 587
-svn-dav/repositories /var/db/${APP_NAME}/svn
 memcached/autoinstall install
+repositories/svn-install install
+repositories/git-install install
+repositories/svn-path /var/db/${APP_NAME}/svn
+repositories/git-path /var/db/${APP_NAME}/git
+repositories/git-http-backend /usr/lib/git-core/git-http-backend/
 CONFIG
 
 ${APP_NAME} configure
