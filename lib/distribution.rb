@@ -116,7 +116,7 @@ class Distribution
     when /fedora/
       "m1.small"
     else
-      "t2.micro"
+      "t2.small"
     end
   end
 
