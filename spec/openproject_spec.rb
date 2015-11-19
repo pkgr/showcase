@@ -13,6 +13,31 @@ describe "OpenProject" do
     ENV.fetch('REPO_URL') { "https://deb.packager.io/gh/crohr/openproject" }
   end
 
+  def create_new_project(project_name)
+    within "#header" do
+      click_on "Projects"
+      click_on "View all projects"
+    end
+
+    expect(page).to have_content("Projects")
+
+    click_on("New project")
+    fill_in "Name", with: project_name
+    click_button "Create"
+    expect(page).to have_content("Successful creation")
+    expect(page).to have_content("Settings")
+
+    within ".tabs" do
+      click_on "Modules"
+    end
+    check "Repository"
+    check "Activity"
+    click_on "Save"
+    expect(page).to have_content("Successful update")
+
+    project_name
+  end
+ 
   def launch_test(distribution, command, tag_val = nil)
     Instance.launch(distribution, tag_val) do |instance|
       instance.ssh(command) do |ssh|
@@ -83,30 +108,7 @@ describe "OpenProject" do
 
         expect(page).to have_content("OpenProject Admin")
 
-        within "#header" do
-          click_on "Projects"
-          click_on "View all projects"
-        end
-
-        expect(page).to have_content("Projects")
-        expect(page).to have_content("Demo project")
-
-        # create new project
-        project_name = "hello-#{Time.now.to_i}"
-        click_on("New project")
-        fill_in "Name", with: project_name
-        click_button "Create"
-        expect(page).to have_content("Successful creation")
-        expect(page).to have_content("Settings")
-
-        within ".tabs" do
-          click_on "Modules"
-        end
-        check "Repository"
-        check "Activity"
-        click_on "Save"
-        expect(page).to have_content("Successful update")
-
+        project_name = create_new_project("hello-svn-#{Time.now.to_i}")
         click_on "Repository"
         select "Subversion", from: "Source control management system"
         find(:xpath, "//input[@name='scm_type' and @value='managed']").click
@@ -140,6 +142,44 @@ svn ci #{svn_args} -m 'commit message'\
           click_link "Activity"
         end
         expect(page).to have_content("Revision 1")
+        expect(page).to have_content("commit message")
+
+        project_name = create_new_project("hello-git-#{Time.now.to_i}")
+        click_on "Repository"
+        select "Git", from: "Source control management system"
+        find(:xpath, "//input[@name='scm_type' and @value='managed']").click
+        click_on "Create"
+        expect(page).to have_content("The repository has been registered")
+
+        within "#menu-sidebar" do
+          click_on "Repository"
+        end
+
+        expect(page).to have_content("Git repository")
+        expect(page).to have_content("There is currently nothing to display")
+
+         # clone and commit a new file
+        git_url = URI.parse(url)
+        git_url.user = "admin"
+        git_url.password = admin_password
+        ssh.exec!(%{
+cd /tmp && \
+export GIT_SSL_NO_VERIFY=true && \
+git clone #{git_url.to_s}/git/#{project_name} && \
+cd #{project_name} && \
+echo world > README.md && \
+git add README.md && \
+git commit -m 'commit message' && git push origin master\
+})
+
+        visit current_url
+        expect(page).to have_content("commit message")
+        expect(page).to have_content("README.md")
+
+        # Activity page makes use of Setting.host_name
+        within "#menu-sidebar" do
+          click_link "Activity"
+        end
         expect(page).to have_content("commit message")
 
         # test backup script
