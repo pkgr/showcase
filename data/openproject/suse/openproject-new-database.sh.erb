@@ -26,7 +26,12 @@ mkdir -p /etc/ssl/certs /etc/ssl/private
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
-rpm --import https://rpm.packager.io/key
+rpm --import https://rpm.packager.io/key || (
+  # sles-11
+  wget https://rpm.packager.io/key
+  rpm --import key
+)
+
 zypper rr ${APP_NAME}
 zypper addrepo ${REPO_URL}/${CODENAME}/${BRANCH} ${APP_NAME}
 zypper --non-interactive install -y ${APP_NAME}
