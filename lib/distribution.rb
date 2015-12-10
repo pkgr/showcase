@@ -21,7 +21,8 @@ class Distribution
       # "ami-6e7da906" # hvm
       "ami-1337187a"
     when "centos-6"
-      "ami-eec75e87" # hvm
+      # "ami-eec75e87" # hvm
+      "ami-57cd8732" # hvm
     when "centos-7"
       "ami-96a818fe" # hvm
     when "rhel-6"
@@ -45,7 +46,9 @@ class Distribution
       "fedora"
     when "centos-7"
       "centos"
-    when /centos/, /rhel/, /sles/
+    when "centos-6"
+      "centos"
+    when /rhel/, /sles/
       "ec2-user"
     else
       "root"
