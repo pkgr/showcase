@@ -7,6 +7,7 @@ BRANCH="<%= branch %>"
 REPO_URL="<%= repo_url %>"
 SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
 APP_NAME="<%= app_name %>"
+APP_PREFIX="<%= app_prefix %>"
 
 yum makecache
 yum install -y curl openssl
@@ -40,7 +41,7 @@ server/ssl yes
 server/ssl_cert /etc/ssl/certs/server.crt
 server/ssl_ca /etc/ssl/certs/server.crt
 server/ssl_key /etc/ssl/private/server.key
-server/server_path_prefix /
+server/server_path_prefix ${APP_PREFIX}
 smtp/autoinstall smtp
 smtp/authentication login
 smtp/admin_email cyril.rohr@gmail.com

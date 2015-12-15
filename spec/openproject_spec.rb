@@ -13,6 +13,10 @@ describe "OpenProject" do
     ENV.fetch('REPO_URL') { "https://deb.packager.io/gh/crohr/openproject" }
   end
 
+  def app_prefix
+    ENV.fetch('APP_PREFIX') { nil }
+  end
+
   def create_new_project(project_name)
     within "#header" do
       click_on "Projects"
@@ -41,7 +45,7 @@ describe "OpenProject" do
   def launch_test(distribution, command, tag_val = nil)
     Instance.launch(distribution, tag_val) do |instance|
       instance.ssh(command) do |ssh|
-        url = "https://#{instance.hostname}"
+        url = "https://#{instance.hostname}#{app_prefix}"
         puts url
 
         if distribution.el?
@@ -124,17 +128,18 @@ describe "OpenProject" do
 
         # clone and commit a new file
         svn_args = "--trust-server-cert --non-interactive --username admin --password #{admin_password}"
-        ssh.exec!(%{
+        cmd = %{
 cd /tmp && \
 svn checkout #{svn_args} #{url}/svn/#{project_name} && \
 cd #{project_name} && \
 echo world > README.md && \
 svn add README.md && \
-svn ci #{svn_args} -m 'commit message'\
-                  })
+svn ci #{svn_args} -m 'svn commit message'}
+        puts cmd
+        ssh.exec!(cmd)
 
         visit current_url
-        expect(page).to have_content("commit message")
+        expect(page).to have_content("svn commit message")
         expect(page).to have_content("README.md")
 
         # Activity page makes use of Setting.host_name
@@ -162,18 +167,20 @@ svn ci #{svn_args} -m 'commit message'\
         git_url = URI.parse(url)
         git_url.user = "admin"
         git_url.password = admin_password
-        ssh.exec!(%{
+        cmd = %{
 cd /tmp && \
 export GIT_SSL_NO_VERIFY=true && \
 git clone #{git_url.to_s}/git/#{project_name} && \
 cd #{project_name} && \
 echo world > README.md && \
 git add README.md && \
-git commit -m 'commit message' && git push origin master\
-})
+git commit -m 'git commit message' && git push origin master\
+}
+        puts cmd
+        ssh.exec!(cmd)
 
         visit current_url
-        expect(page).to have_content("commit message")
+        expect(page).to have_content("git commit message")
         expect(page).to have_content("README.md")
 
         # Activity page makes use of Setting.host_name
@@ -200,7 +207,8 @@ git commit -m 'commit message' && git push origin master\
           codename: distribution.codename,
           branch: branch,
           repo_url: repo_url,
-          app_name: app_name
+          app_name: app_name,
+          app_prefix: app_prefix
         )
         command = Command.new(template.render, sudo: true, dry_run: dry_run?)
         launch_test(distribution, command, "#{distribution.name} - openproject new database")
@@ -212,7 +220,8 @@ git commit -m 'commit message' && git push origin master\
           codename: distribution.codename,
           branch: branch,
           repo_url: repo_url,
-          app_name: app_name
+          app_name: app_name,
+          app_prefix: app_prefix
         )
         command = Command.new(template.render, sudo: true, dry_run: dry_run?)
         launch_test(distribution, command, "#{distribution.name} - openproject existing database")
