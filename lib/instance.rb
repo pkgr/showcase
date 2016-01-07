@@ -60,7 +60,7 @@ class Instance
         :block_device_mappings => [{
           :device_name => distribution.root_device,
           :ebs => {
-            :volume_size => 10, # 10 GiB
+            :volume_size => distribution.volume_size,
             :delete_on_termination => true
           }
         }],

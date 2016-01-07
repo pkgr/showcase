@@ -5,6 +5,15 @@ class Distribution
     @name = name
   end
 
+  def volume_size
+    case name
+    when "sles-11"
+      50 # sles-11 ami needs more inodes that the default, and adding more storage increases it
+    else
+      10 # 10 GiB
+    end
+  end
+
   def ami_id
     case name
     when "debian-7"
