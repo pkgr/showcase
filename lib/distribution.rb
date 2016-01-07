@@ -7,7 +7,7 @@ class Distribution
 
   def volume_size
     case name
-    when "sles-11"
+    when "sles-11", "sles-12"
       50 # sles-11 ami needs more inodes that the default, and adding more storage increases it
     else
       10 # 10 GiB
