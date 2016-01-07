@@ -14,6 +14,9 @@ until zypper install -y curl openssl ; do
   sleep 5
 done
 
+# ensure no mysql server is running
+zypper remove -y mysql || zypper remove -y mariadb || true
+
 # fetch local machine hostname
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 
