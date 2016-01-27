@@ -28,7 +28,7 @@ class Distribution
       # "ami-018c9568"
     when "fedora-20"
       # "ami-6e7da906" # hvm
-      "ami-1337187a"
+      "ami-21362b48"
     when "centos-6"
       # "ami-eec75e87" # hvm
       "ami-57cd8732" # hvm
