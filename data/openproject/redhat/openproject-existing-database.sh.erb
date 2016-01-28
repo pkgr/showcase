@@ -9,6 +9,12 @@ SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
 APP_NAME="<%= app_name %>"
 APP_PREFIX="<%= app_prefix %>"
 
+if grep -q "CentOS release 6" /etc/redhat-release ; then
+  # The CentOS 6 AMI is just too restrictive by default
+  setenforce 0
+  iptables -F
+fi
+
 yum makecache
 yum install -y curl openssl
 
