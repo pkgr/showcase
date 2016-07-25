@@ -26,6 +26,8 @@ class Distribution
     when "ubuntu-14.04"
       "ami-8afb51e2" # hvm
       # "ami-018c9568"
+    when "ubuntu-16.04"
+      "ami-13be557e" # hvm
     when "fedora-20"
       # "ami-6e7da906" # hvm
       "ami-21362b48"
@@ -74,6 +76,8 @@ class Distribution
       "precise"
     when "ubuntu-14.04"
       "trusty"
+    when "ubuntu-16.04"
+      "xenial"
     when "fedora-20"
       "fedora20"
     when "centos-6", "rhel-6"
