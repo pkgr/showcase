@@ -6,6 +6,8 @@ CODENAME="<%= codename %>"
 BRANCH="<%= branch %>"
 REPO_URL="<%= repo_url %>"
 SMTP_PASSWORD="<%= ENV.fetch('SMTP_PASSWORD') %>"
+SMTP_USERNAME="<%= ENV.fetch('SMTP_USERNAME') %>"
+SMTP_HOST="<%= ENV.fetch('SMTP_HOST') %>"
 APP_NAME="<%= app_name %>"
 APP_PREFIX="<%= app_prefix %>"
 
@@ -46,9 +48,9 @@ smtp/autoinstall smtp
 smtp/authentication login
 smtp/admin_email cyril.rohr@gmail.com
 smtp/password ${SMTP_PASSWORD}
-smtp/username cyril.rohr@gmail.com
+smtp/username ${SMTP_USERNAME}
 smtp/domain ${HOSTNAME}
-smtp/host smtp.mandrillapp.com
+smtp/host ${SMTP_HOST}
 smtp/port 587
 memcached/autoinstall install
 repositories/svn-install install
