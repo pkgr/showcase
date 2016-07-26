@@ -113,6 +113,10 @@ describe "OpenProject" do
           click_button "Sign in"
         end
 
+        if page.has_content?("Next") # 6+
+          click_on "Next"
+        end
+
         expect(page).to have_content("OpenProject Admin")
 
         project_name = create_new_project("hello-svn-#{Time.now.to_i}")
