@@ -30,6 +30,10 @@ describe "OpenProject" do
     click_button "Create"
     expect(page).to have_content("Successful creation")
 
+    if page.has_content?("Project settings") # 6+
+      click_on "Project settings"
+    end
+
     within ".tabs" do
       click_on "Modules"
     end
