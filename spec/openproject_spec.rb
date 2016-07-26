@@ -29,7 +29,6 @@ describe "OpenProject" do
     fill_in "Name", with: project_name
     click_button "Create"
     expect(page).to have_content("Successful creation")
-    expect(page).to have_content("Settings")
 
     within ".tabs" do
       click_on "Modules"
