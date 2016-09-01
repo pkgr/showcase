@@ -78,7 +78,7 @@ describe "OpenProject" do
         if branch >= "release/4.2"
           puts "Checking JS bundles..."
           js_bundles_output = ssh.exec!("ls -al /opt/openproject/app/assets/javascripts/bundles/")
-          expect(js_bundles_output).to include("openproject-translations.js")
+          expect(js_bundles_output).to include("openproject-translations.js") if branch == "release/5.0"
           expect(js_bundles_output).to include("openproject-global.js")
           expect(js_bundles_output).to include("openproject-core-app.js")
         end
