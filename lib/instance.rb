@@ -69,7 +69,7 @@ class Instance
 
       # give time for the instance to be created
       max_retries_attempts = 12
-      until ec2_instance.status == :running
+      until (ec2_instance.status rescue nil) == :running
         if max_retries_attempts > 0
           max_retries_attempts -= 1
           sleep 10
