@@ -17,9 +17,30 @@ describe "OpenProject" do
     ENV.fetch('APP_PREFIX') { nil }
   end
 
+  def under_v7?
+    v6? || v5?
+  end
+
+  def v7?
+    [%r{stable/7}, %r{release/7.}].find{|pattern| branch =~ pattern}
+  end
+
+  def v6?
+    [%r{stable/6}, %r{release/6.}].find{|pattern| branch =~ pattern}
+  end
+
+  def v5?
+    [%r{stable/5}, %r{release/5.}].find{|pattern| branch =~ pattern}
+  end
+
   def create_new_project(project_name)
-    within "#header" do
-      click_on "Projects"
+    if under_v7?
+      within "#header" do
+        click_on "Projects"
+        click_on "View all projects"
+      end
+    else
+      click_on "Home"
       click_on "View all projects"
     end
 
@@ -75,12 +96,16 @@ describe "OpenProject" do
         puts check_output
         expect(check_output).to_not include("[ko]")
 
-        if branch >= "release/4.2"
-          puts "Checking JS bundles..."
-          js_bundles_output = ssh.exec!("ls -al /opt/openproject/app/assets/javascripts/bundles/")
+        puts "Checking JS bundles..."
+        js_bundles_output = ssh.exec!("ls -al /opt/openproject/app/assets/javascripts/bundles/")
+        if under_v7?
           expect(js_bundles_output).to include("openproject-translations.js") if branch == "release/5.0"
           expect(js_bundles_output).to include("openproject-global.js")
           expect(js_bundles_output).to include("openproject-core-app.js")
+        else
+          expect(js_bundles_output).to include("openproject-core-app.js")
+          expect(js_bundles_output).to include("openproject-vendors.js")
+          expect(js_bundles_output).to include("openproject-costs.js")
         end
 
         # cold start
