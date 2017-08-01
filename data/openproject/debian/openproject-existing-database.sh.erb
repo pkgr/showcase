@@ -41,9 +41,10 @@ mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
 CONFIG
 apt-get install -y -f --force-yes mysql-server
 
-mysql -u root -p${MYSQL_PASSWORD} -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY 'bar' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
+DB_PASSWORD="p4ss@#word"
+mysql -u root -p"${MYSQL_PASSWORD}" -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY '$DB_PASSWORD' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
 
-mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p${MYSQL_PASSWORD}
+mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p"${MYSQL_PASSWORD}"
 
 # generate MySQL SSL config
 # https://mifosforge.jira.com/wiki/display/MIFOS/How+to+enable+MySQL+SSL+on+Ubuntu
@@ -82,7 +83,7 @@ mysql/db_host 127.0.0.1
 mysql/db_source_host 127.0.0.1
 mysql/db_port 3306
 mysql/db_username foo
-mysql/db_password bar
+mysql/db_password ${DB_PASSWORD}
 mysql/db_name foobar
 mysql/ssl yes
 mysql/ssl_ca /etc/mysql/ca-cert.pem
