@@ -10,9 +10,12 @@ require 'command'
 require 'instance'
 require 'template'
 
-# Capybara.default_driver = :selenium
-Capybara.default_driver = :headless_chrome
-# Capybara.javascript_driver = :headless_chrome
+Capybara.register_driver :chrome do |app|
+  Capybara::Selenium::Driver.new(app, browser: :chrome, args: ["--window-size=1024,768"])
+end
+
+Capybara.javascript_driver = :chrome
+Capybara.default_driver = :chrome
 Capybara.run_server = false
 # since we're cold-loading the apps most of the time, it makes sense to wait more
 Capybara.default_wait_time = 10

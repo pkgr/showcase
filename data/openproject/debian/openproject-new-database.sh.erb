@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e
+set -ex
+export DEBIAN_FRONTEND=noninteractive
 
 locale-gen --purge en_US.UTF-8
 echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
@@ -16,28 +17,29 @@ SMTP_HOST="<%= ENV.fetch('SMTP_HOST') %>"
 APP_NAME="<%= app_name %>"
 APP_PREFIX="<%= app_prefix %>"
 
-apt-get update -qq
+apt-get update -qq || true
 apt-get install -y curl apt-transport-https sudo
 
 # fetch local machine hostname
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 
 # generate self-signed certificate to test SSL config
-openssl genrsa -des3 -passout pass:x -out server.pass.key 2048 &>/dev/null
-openssl rsa -passin pass:x -in server.pass.key -out server.key
+openssl genrsa -des3 -passout pass:p4ssw0rd -out server.pass.key 2048 &>/dev/null
+openssl rsa -passin pass:p4ssw0rd -in server.pass.key -out server.key
 rm server.pass.key
 openssl req -new -key server.key -out server.csr -subj "/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
 openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
-wget -qO - https://deb.packager.io/key | sudo apt-key add -
-echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee > /etc/apt/sources.list.d/${APP_NAME}.list
+wget -qO- ${REPO_URL}/key | sudo apt-key add -
+sudo wget -O /etc/apt/sources.list.d/${APP_NAME}.list \
+  ${REPO_URL}/${BRANCH}/installer/${CODENAME}.repo
 sudo apt-get update -qq
 
 sudo apt-get install ${APP_NAME} -y
 
-cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
+echo "
 mysql/autoinstall install
 mysql/ssl no
 server/autoinstall install
@@ -61,6 +63,4 @@ repositories/git-install install
 repositories/svn-path /var/db/${APP_NAME}/svn
 repositories/git-path /var/db/${APP_NAME}/git
 repositories/git-http-backend /usr/lib/git-core/git-http-backend/
-CONFIG
-
-${APP_NAME} configure
+" | ${APP_NAME} configure

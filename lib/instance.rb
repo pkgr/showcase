@@ -57,13 +57,13 @@ class Instance
         :subnet => ENV.fetch('INSTANCE_SUBNET') { "subnet-ef440fd3" },
         :security_group_ids => ENV.fetch('INSTANCE_SECURITY_GROUP_IDS') { 'sg-fafffb84' }.split(","),
         :count => 1,
-        :block_device_mappings => [{
-          :device_name => distribution.root_device,
-          :ebs => {
-            :volume_size => distribution.volume_size,
-            :delete_on_termination => true
-          }
-        }],
+        # :block_device_mappings => [{
+        #   :device_name => distribution.root_device,
+        #   :ebs => {
+        #     :volume_size => distribution.volume_size,
+        #     :delete_on_termination => true
+        #   }
+        # }],
         :key_pair => ec2.key_pairs[key_name]
       )
 

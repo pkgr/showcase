@@ -27,14 +27,11 @@ mkdir -p /etc/ssl/certs /etc/ssl/private
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
-rpm --import https://rpm.packager.io/key
-echo "[${APP_NAME}]
-name=Repository for ${APP_NAME} application.
-baseurl=${REPO_URL}/${CODENAME}/${BRANCH}
-enabled=1" | sudo tee /etc/yum.repos.d/${APP_NAME}.repo
+curl -L -o /etc/yum.repos.d/${APP_NAME}.repo \
+  ${REPO_URL}/${BRANCH}/installer/${CODENAME}.repo
 yum install -y ${APP_NAME}
 
-cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
+echo "
 mysql/autoinstall install
 mysql/ssl no
 server/autoinstall install
@@ -58,6 +55,4 @@ repositories/git-install install
 repositories/svn-path /var/db/${APP_NAME}/svn
 repositories/git-path /var/db/${APP_NAME}/git
 repositories/git-http-backend /usr/lib/git-core/git-http-backend/
-CONFIG
-
-${APP_NAME} configure
+" | ${APP_NAME} configure

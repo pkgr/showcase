@@ -92,7 +92,7 @@ baseurl=${REPO_URL}/${CODENAME}/${BRANCH}
 enabled=1" | sudo tee /etc/yum.repos.d/${APP_NAME}.repo
 yum install -y ${APP_NAME}
 
-cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
+echo "
 mysql/autoinstall reuse
 mysql/db_host 127.0.0.1
 mysql/db_source_host 127.0.0.1
@@ -125,6 +125,4 @@ repositories/git-install install
 repositories/svn-path /var/db/${APP_NAME}/svn
 repositories/git-path /var/db/${APP_NAME}/git
 repositories/git-http-backend /usr/lib/git-core/git-http-backend/
-CONFIG
-
-${APP_NAME} configure
+" | ${APP_NAME} configure

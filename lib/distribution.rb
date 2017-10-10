@@ -20,6 +20,8 @@ class Distribution
       "ami-e0efab88" # hvm
     when "debian-8"
       "ami-144f4d7c" # hvm
+    when "debian-9"
+      "ami-27072e31"
     when "ubuntu-12.04"
       "ami-1eab0176" # hvm
       # "ami-0b9c9f62"
@@ -31,10 +33,10 @@ class Distribution
     when "fedora-20"
       # "ami-6e7da906" # hvm
       "ami-21362b48"
-    when "centos-6"
+    when "centos-6", "el-6"
       # "ami-eec75e87" # hvm
       "ami-57cd8732" # hvm
-    when "centos-7"
+    when "centos-7", "el-7"
       "ami-96a818fe" # hvm
     when "rhel-6"
       "ami-5b697332"
@@ -55,9 +57,9 @@ class Distribution
       "admin"
     when /fedora/
       "fedora"
-    when "centos-7"
+    when "centos-7", "el-7"
       "centos"
-    when "centos-6"
+    when "centos-6", "el-6"
       "centos"
     when /rhel/, /sles/
       "ec2-user"
@@ -67,11 +69,14 @@ class Distribution
   end
 
   def codename
+    return name.sub("-", "/")
     case name
     when "debian-7"
       "wheezy"
     when "debian-8"
       "jessie"
+    when "debian-9"
+      "stretch"
     when "ubuntu-12.04"
       "precise"
     when "ubuntu-14.04"
@@ -109,10 +114,12 @@ class Distribution
     case name
     when /debian/, /ubuntu/
       "debian"
-    when /fedora/, /redhat/, /centos/, /rhel/
+    when /fedora/, /redhat/, /centos/, /rhel/, /el/
       "redhat"
     when /sles/
       "suse"
+    else
+      fail "unknown osfamily for #{name.inspect}"
     end
   end
 

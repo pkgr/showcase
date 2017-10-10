@@ -16,6 +16,11 @@ until zypper install -y curl openssl ; do
   sleep 5
 done
 
+until zypper install -y ImageMagick; do
+  echo "additional repo for ImageMagick not configured yet"
+  sleep 5
+done
+
 # ensure no mysql server is running
 zypper remove -y mysql || zypper remove -y mariadb || true
 
@@ -32,17 +37,12 @@ mkdir -p /etc/ssl/certs /etc/ssl/private
 cp server.crt /etc/ssl/certs/
 cp server.key /etc/ssl/private/ && chmod 0640 /etc/ssl/private/server.key
 
-rpm --import https://rpm.packager.io/key || (
-  # sles-11
-  wget https://rpm.packager.io/key
-  rpm --import key
-)
-
 zypper rr ${APP_NAME}
-zypper addrepo ${REPO_URL}/${CODENAME}/${BRANCH} ${APP_NAME}
+wget -O /etc/zypp/repos.d/$APP_NAME.repo \
+  ${REPO_URL}/${BRANCH}/installer/${CODENAME}.repo
 zypper --non-interactive install -y ${APP_NAME}
 
-cat - <<CONFIG > /etc/${APP_NAME}/installer.dat
+echo "
 mysql/autoinstall install
 mysql/ssl no
 server/autoinstall install
@@ -66,6 +66,4 @@ repositories/git-install install
 repositories/svn-path /var/db/${APP_NAME}/svn
 repositories/git-path /var/db/${APP_NAME}/git
 repositories/git-http-backend /usr/lib/git-core/git-http-backend/
-CONFIG
-
-${APP_NAME} configure
+" | ${APP_NAME} configure

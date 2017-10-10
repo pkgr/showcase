@@ -51,9 +51,7 @@ describe "OpenProject" do
     click_button "Create"
     expect(page).to have_content("Successful creation")
 
-    if page.has_content?("Project settings") # 6+
-      click_on "Project settings"
-    end
+		click_on "Project settings"
 
     within ".tabs" do
       click_on "Modules"
@@ -105,7 +103,7 @@ describe "OpenProject" do
         else
           expect(js_bundles_output).to include("openproject-core-app.js")
           expect(js_bundles_output).to include("openproject-vendors.js")
-          expect(js_bundles_output).to include("openproject-costs.js")
+          expect(js_bundles_output).to include("openproject-costs.js") if repo_url.include?("openproject-ce")
         end
 
         # cold start
