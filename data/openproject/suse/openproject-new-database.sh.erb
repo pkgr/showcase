@@ -66,4 +66,5 @@ repositories/git-install install
 repositories/svn-path /var/db/${APP_NAME}/svn
 repositories/git-path /var/db/${APP_NAME}/git
 repositories/git-http-backend /usr/lib/git-core/git-http-backend/
-" | ${APP_NAME} configure
+" > /etc/${APP_NAME}/installer.dat
+${APP_NAME} configure
