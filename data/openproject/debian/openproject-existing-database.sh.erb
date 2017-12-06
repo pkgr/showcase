@@ -15,18 +15,16 @@ SMTP_HOST="<%= ENV.fetch('SMTP_HOST') %>"
 APP_NAME="<%= app_name %>"
 APP_PREFIX="<%= app_prefix %>"
 
-apt-get update -qq
+apt-get update -qq || true
 apt-get install -y curl apt-transport-https sudo
-apt-get autoclean
-apt-get update -qq
 
 # fetch local machine hostname
 HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 REQ_SUBJ_SERVER="/C=UK/ST=Warwickshire/L=Leamington/O=Packager/OU=IT Department/CN=${HOSTNAME}"
 
 # generate self-signed certificate to test SSL config
-openssl genrsa -des3 -passout pass:x -out server.pass.key 2048 &>/dev/null
-openssl rsa -passin pass:x -in server.pass.key -out server.key
+openssl genrsa -des3 -passout pass:p4ssw0rd -out server.pass.key 2048 &>/dev/null
+openssl rsa -passin pass:p4ssw0rd -in server.pass.key -out server.key
 rm server.pass.key
 openssl req -new -key server.key -out server.csr -subj "${REQ_SUBJ_SERVER}"
 openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
@@ -41,7 +39,7 @@ mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}
 CONFIG
 apt-get install -y -f --force-yes mysql-server
 
-DB_PASSWORD="p4ss@#word"
+DB_PASSWORD="p4ssw0rd"
 mysql -u root -p"${MYSQL_PASSWORD}" -e "GRANT USAGE ON *.* TO foo@127.0.0.1 IDENTIFIED BY '$DB_PASSWORD' REQUIRE SSL; CREATE DATABASE IF NOT EXISTS foobar; GRANT ALL PRIVILEGES ON foobar.* TO foo@127.0.0.1; FLUSH PRIVILEGES;"
 
 mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p"${MYSQL_PASSWORD}"
@@ -71,8 +69,9 @@ service mysql restart
 # wait to make sure certificate date is > NOW, otherwise we could get SSL connection error: ASN: before date in the future
 sleep 70
 
-wget -qO - https://deb.packager.io/key | sudo apt-key add -
-echo "deb ${REPO_URL} ${CODENAME} ${BRANCH}" | sudo tee > /etc/apt/sources.list.d/${APP_NAME}.list
+wget -qO- ${REPO_URL}/key | sudo apt-key add -
+sudo wget -O /etc/apt/sources.list.d/${APP_NAME}.list \
+  ${REPO_URL}/${BRANCH}/installer/${CODENAME}.repo
 sudo apt-get update -qq
 
 sudo apt-get install ${APP_NAME} -y
@@ -110,4 +109,4 @@ repositories/git-install install
 repositories/svn-path /var/db/${APP_NAME}/svn
 repositories/git-path /var/db/${APP_NAME}/git
 repositories/git-http-backend /usr/lib/git-core/git-http-backend/
-" | ${APP_NAME} configure
+" | ${APP_NAME} configure -f -

@@ -1,6 +1,7 @@
 require 'aws-sdk'
 require 'rspec'
 require 'capybara/rspec'
+require "selenium/webdriver"
 require 'dotenv'
 Dotenv.load
 
@@ -9,6 +10,18 @@ $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require 'command'
 require 'instance'
 require 'template'
+
+# Note: headless chrome doesn't support invalid certificates
+# https://bugs.chromium.org/p/chromium/issues/detail?id=721739
+Capybara.register_driver :headless_chrome do |app|
+  capabilities = Selenium::WebDriver::Remote::Capabilities.chrome(
+    chromeOptions: { args: %w(headless disable-gpu ignore-certificate-errors) }
+  )
+
+  Capybara::Selenium::Driver.new app,
+    browser: :chrome,
+    desired_capabilities: capabilities
+end
 
 Capybara.register_driver :chrome do |app|
   Capybara::Selenium::Driver.new(app, browser: :chrome, args: ["--window-size=1024,768"])

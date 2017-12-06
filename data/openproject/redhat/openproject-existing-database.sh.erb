@@ -17,6 +17,8 @@ if grep -q "CentOS release 6" /etc/redhat-release ; then
   iptables -F
 fi
 
+rm -f /etc/yum.repos.d/${APP_NAME}.repo
+
 yum makecache
 yum install -y curl openssl
 
@@ -83,13 +85,10 @@ MYSQL
 service $service restart
 
 # wait to make sure certificate date is > NOW, otherwise we could get SSL connection error: ASN: before date in the future
-sleep 70
+sleep 60
 
-rpm --import https://rpm.packager.io/key
-echo "[${APP_NAME}]
-name=Repository for ${APP_NAME} application.
-baseurl=${REPO_URL}/${CODENAME}/${BRANCH}
-enabled=1" | sudo tee /etc/yum.repos.d/${APP_NAME}.repo
+curl -L -o /etc/yum.repos.d/${APP_NAME}.repo \
+  ${REPO_URL}/${BRANCH}/installer/${CODENAME}.repo
 yum install -y ${APP_NAME}
 
 echo "

@@ -75,14 +75,9 @@ service $service restart
 # wait to make sure certificate date is > NOW, otherwise we could get SSL connection error: ASN: before date in the future
 sleep 70
 
-rpm --import https://rpm.packager.io/key || (
-  # sles-11
-  wget https://rpm.packager.io/key
-  rpm --import key
-)
-
 zypper rr ${APP_NAME}
-zypper addrepo ${REPO_URL}/${CODENAME}/${BRANCH} ${APP_NAME}
+wget -O /etc/zypp/repos.d/$APP_NAME.repo \
+  ${REPO_URL}/${BRANCH}/installer/${CODENAME}.repo
 zypper --non-interactive install -y ${APP_NAME}
 
 echo "
@@ -118,4 +113,4 @@ repositories/git-install install
 repositories/svn-path /var/db/${APP_NAME}/svn
 repositories/git-path /var/db/${APP_NAME}/git
 repositories/git-http-backend /usr/lib/git-core/git-http-backend/
-" | ${APP_NAME} configure
+" | ${APP_NAME} configure -f -
